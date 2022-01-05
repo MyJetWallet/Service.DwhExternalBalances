@@ -8,8 +8,15 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
+    <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="6.0.1" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.40.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="MyJetWallet.Sdk.GrpcMetrics" Version="2.0.4" />
@@ -24,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Service.DwhExternalBalances.DataBase\Service.DwhExternalBalances.DataBase.csproj" />
     <ProjectReference Include="..\Service.DwhExternalBalances.Domain\Service.DwhExternalBalances.Domain.csproj" />
     <ProjectReference Include="..\Service.DwhExternalBalances.Grpc\Service.DwhExternalBalances.Grpc.csproj" />
   </ItemGroup>

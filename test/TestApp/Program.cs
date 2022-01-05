@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using ProtoBuf.Grpc.Client;
 using Service.DwhExternalBalances.Client;
@@ -16,11 +17,11 @@ namespace TestApp
             Console.ReadLine();
 
 
-            var factory = new DwhExternalBalancesClientFactory("http://localhost:5001");
-            var client = factory.GetHelloService();
+            var factory = new DwhExternalBalancesClientFactory("http://localhost:80");
+            var client = factory.GetDwhExternalBalancesService();
 
-            var resp = await  client.SayHelloAsync(new HelloRequest(){Name = "Alex"});
-            Console.WriteLine(resp?.Message);
+            var resp = await  client.GetAllBalancesAsync();
+            Console.WriteLine(JsonSerializer.Serialize(resp));
 
             Console.WriteLine("End");
             Console.ReadLine();

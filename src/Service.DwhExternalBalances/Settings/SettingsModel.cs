@@ -13,5 +13,8 @@ namespace Service.DwhExternalBalances.Settings
 
         [YamlProperty("DwhExternalBalances.ElkLogs")]
         public LogElkSettings ElkLogs { get; set; }
+        
+        [YamlProperty("DwhExternalBalances.DwhConnectionString")]
+        public string DwhConnectionString { get; set; }
     }
 }

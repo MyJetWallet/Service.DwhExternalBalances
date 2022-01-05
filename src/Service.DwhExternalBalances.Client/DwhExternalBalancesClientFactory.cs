@@ -11,6 +11,6 @@ namespace Service.DwhExternalBalances.Client
         {
         }
 
-        public IHelloService GetHelloService() => CreateGrpcService<IHelloService>();
+        public IDwhExternalBalancesService GetDwhExternalBalancesService() => CreateGrpcService<IDwhExternalBalancesService>();
     }
 }

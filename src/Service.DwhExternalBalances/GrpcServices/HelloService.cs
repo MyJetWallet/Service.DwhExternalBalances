@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Service.DwhExternalBalances.Grpc;
 using Service.DwhExternalBalances.Grpc.Models;
