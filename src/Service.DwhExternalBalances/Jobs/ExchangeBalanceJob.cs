@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
 using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.Service.Tools;
@@ -14,7 +15,7 @@ using Service.Liquidity.InternalWallets.Grpc.Models;
 
 namespace Service.DwhExternalBalances.Jobs
 {
-    public class ExchangeBalanceJob
+    public class ExchangeBalanceJob : IStartable
     {
         private readonly MyTaskTimer _timer;
         private readonly ILogger<ExchangeBalanceJob> _logger;
