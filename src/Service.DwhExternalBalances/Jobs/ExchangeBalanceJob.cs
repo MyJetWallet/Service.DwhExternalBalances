@@ -21,14 +21,16 @@ namespace Service.DwhExternalBalances.Jobs
         private readonly ILogger<ExchangeBalanceJob> _logger;
         private readonly IExternalMarketsGrpc _externalMarketsGrpc;
         private readonly IDwhDbContextFactory _dwhDbContextFactory;
-        private readonly IMyNoSqlServerDataReader<WalletBalanceEntity> _walletBalanceReader;
 
-        public ExchangeBalanceJob(MyTaskTimer timer, ILogger<ExchangeBalanceJob> logger, IExternalMarketsGrpc externalMarketsGrpc, IDwhDbContextFactory dwhDbContextFactory, IMyNoSqlServerDataReader<WalletBalanceEntity> walletBalanceReader)
+        public ExchangeBalanceJob(
+            ILogger<ExchangeBalanceJob> logger, 
+            IExternalMarketsGrpc externalMarketsGrpc,
+            IDwhDbContextFactory dwhDbContextFactory
+            )
         {
             _logger = logger;
             _externalMarketsGrpc = externalMarketsGrpc;
             _dwhDbContextFactory = dwhDbContextFactory;
-            _walletBalanceReader = walletBalanceReader;
 
             _timer = new MyTaskTimer(nameof(ExchangeBalanceJob),
                 TimeSpan.FromSeconds(60), _logger, DoTime);
