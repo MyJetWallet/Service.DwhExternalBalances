@@ -38,7 +38,7 @@ jobs:
       run: ls ./publish-api
       
     - name: Publish image
-      uses: docker/build-push-action@v1
+      uses: docker/build-push-action@v2
       with:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -49,7 +49,7 @@ jobs:
         build_args: app_version=myjetwallet.service.dwhexternalbalances-test:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
 
     - name: Publish image ST
-      uses: docker/build-push-action@v1
+      uses: docker/build-push-action@v2
       with:
         username: ${{ secrets.ST_DOCKER_USER }}
         password: ${{ secrets.ST_DOCKER_PASSWORD }}
