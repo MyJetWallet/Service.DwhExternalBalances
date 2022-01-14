@@ -16,5 +16,11 @@ namespace Service.DwhExternalBalances.Settings
         
         [YamlProperty("DwhExternalBalances.DwhConnectionString")]
         public string DwhConnectionString { get; set; }
+
+        [YamlProperty("DwhExternalBalances.MyNoSqlReaderHostPort")]
+        public string MyNoSqlReaderHostPort { get; set; }
+        
+        [YamlProperty("DwhExternalBalances.ExternalApiGrpcUrl")]
+        public string ExternalApiGrpcUrl { get; set; }
     }
 }

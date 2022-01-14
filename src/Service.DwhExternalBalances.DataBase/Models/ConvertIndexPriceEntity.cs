@@ -4,8 +4,6 @@ namespace Service.DwhExternalBalances.DataBase.Models
 {
     public class ConvertIndexPriceEntity : ConvertIndexPrice
     {
-        public long Id { get; set; }
-
         public ConvertIndexPriceEntity()
         {
         }

@@ -5,13 +5,15 @@ using System.Threading.Tasks;
 using Autofac;
 using DotNetCoreDecorators;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Domain.ExternalMarketApi;
+using MyJetWallet.Domain.ExternalMarketApi.Dto;
 using MyJetWallet.Sdk.Service.Tools;
 using MyNoSqlServer.Abstractions;
 using Newtonsoft.Json;
 using Service.DwhExternalBalances.DataBase;
 using Service.DwhExternalBalances.DataBase.Models;
-using Service.Liquidity.InternalWallets.Grpc;
-using Service.Liquidity.InternalWallets.Grpc.Models;
+using Service.DwhExternalBalances.Domain.Models;
+
 
 namespace Service.DwhExternalBalances.Jobs
 {
@@ -19,22 +21,25 @@ namespace Service.DwhExternalBalances.Jobs
     {
         private readonly MyTaskTimer _timer;
         private readonly ILogger<ExchangeBalanceJob> _logger;
-        private readonly IExternalMarketsGrpc _externalMarketsGrpc;
+        private readonly IExternalMarket _externalMarket;
         private readonly IDwhDbContextFactory _dwhDbContextFactory;
+        
+        private readonly List<string> Exchange = new List<string>(){"Binance", "FTX"};
+
 
         public ExchangeBalanceJob(
-            ILogger<ExchangeBalanceJob> logger, 
-            IExternalMarketsGrpc externalMarketsGrpc,
-            IDwhDbContextFactory dwhDbContextFactory
-            )
+            ILogger<ExchangeBalanceJob> logger,
+            IExternalMarket externalMarket,
+            IDwhDbContextFactory dwhDbContextFactory)
         {
             _logger = logger;
-            _externalMarketsGrpc = externalMarketsGrpc;
+            _externalMarket = externalMarket;
             _dwhDbContextFactory = dwhDbContextFactory;
-
+            
             _timer = new MyTaskTimer(nameof(ExchangeBalanceJob),
                 TimeSpan.FromSeconds(60), _logger, DoTime);
         }
+        
         
         private async Task DoTime()
         {
@@ -45,33 +50,22 @@ namespace Service.DwhExternalBalances.Jobs
         {
             try
             {
-                _logger.LogInformation($"PersistExternalBalances start at {DateTime.UtcNow}");
-                
-                var externalExchanges = await _externalMarketsGrpc.GetExternalMarketListAsync();
-                var exchangesList = externalExchanges.Data.List ?? new List<string>();
-                var iterationTime = DateTime.UtcNow;
-                
-                _logger.LogInformation("PersistExternalBalances find exchanges: {exchangesJson}.", 
-                    JsonConvert.SerializeObject(exchangesList));
-                
-                var allBalances = new List<ExternalBalanceEntity>();
-                foreach (var exchange in exchangesList)
+                var allBalances = new List<ExternalBalance>();
+                foreach (var ex in Exchange)
                 {
-                    var balances = await _externalMarketsGrpc.GetBalancesAsync(new SourceDto()
+                    var balance = await _externalMarket.GetBalancesAsync(new GetBalancesRequest()
                     {
-                        Source = exchange
+                        ExchangeName = ex
                     });
-                    _logger.LogInformation("PersistExternalBalances find {balanceCount} for exchange: {exchangeJson}.", 
-                        balances.Data.List.Count, exchange);
                     
-                    allBalances.AddRange(balances.Data.List.Select(e => new ExternalBalanceEntity()
-                    {
-                        Exchange = exchange,
-                        Asset = e.Asset,
-                        Balance = (decimal) e.Balance,
-                        BalanceDate = iterationTime.Date,
-                        LastUpdateDate = iterationTime
-                    }));
+                    allBalances.AddRange(balance.Balances.Select(e=> new ExternalBalance()
+                        {
+                            Asset = e.Symbol,
+                            Name = ex,
+                            Type = ex,
+                            Volume = e.Balance
+                        }
+                    ));
                 }
                 
                 await using var ctx = _dwhDbContextFactory.Create();

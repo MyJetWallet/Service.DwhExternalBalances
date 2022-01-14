@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Service.DwhExternalBalances.DataBase;
 using Service.DwhExternalBalances.DataBase.Models;
@@ -20,10 +21,34 @@ namespace Service.DwhExternalBalances.Engines
         public async Task HandleConvertPrice()
         {
             var prices = _convertIndexPricesClient.GetConvertIndexPricesAsync();
-            var pricesEntities = prices.Select(e => new ConvertIndexPriceEntity(e)).ToList();
+            //var pricesEntities = prices.Select(e => new ConvertIndexPriceEntity(e)).ToList();
 
-            await using var ctx = _dwhDbContextFactory.Create();
-            await ctx.UpsertConvertPrice(pricesEntities);
+            var priceGroupping = prices.Select(e => new ConvertIndexPriceEntity(e)).ToList();
+
+            foreach (var item in priceGroupping)
+            {
+                await using var ctx = _dwhDbContextFactory.Create();
+                await ctx.SinglUpsertConvertPrice(item);
+            }
+
+            /*var pricesEntities =
+                priceGroupping.GroupBy(i => $"{i.BaseAsset} - {i.QuotedAsset}")
+                    .Select(i => i.OrderByDescending(i => i.UpdateDate).First())
+                    .ToList().Chunk(100);
+
+            try
+            {
+                await using var ctx = _dwhDbContextFactory.Create();
+                foreach (var items in pricesEntities)
+                {
+                    await ctx.UpsertConvertPrice(items);
+                }
+                
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }*/
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -66,12 +67,10 @@ namespace Service.DwhExternalBalances.DataBase
             modelBuilder.Entity<MarketPriceEntity>().HasIndex(e => e.InstrumentSymbol);
             
             modelBuilder.Entity<ConvertIndexPriceEntity>().ToTable(ConvertIndexPriceTableName);
-            modelBuilder.Entity<ConvertIndexPriceEntity>().Property(e => e.Id).UseIdentityColumn();
-            modelBuilder.Entity<ConvertIndexPriceEntity>().HasKey(e => e.Id);
             modelBuilder.Entity<ConvertIndexPriceEntity>().Property(e => e.BaseAsset).HasMaxLength(64);
             modelBuilder.Entity<ConvertIndexPriceEntity>().Property(e => e.QuotedAsset).HasMaxLength(64);
             modelBuilder.Entity<ConvertIndexPriceEntity>().Property(e => e.Error).HasMaxLength(256);
-            modelBuilder.Entity<ConvertIndexPriceEntity>().HasIndex(e => new {e.BaseAsset, e.QuotedAsset}).IsUnique();
+            modelBuilder.Entity<ConvertIndexPriceEntity>().HasKey(e => new {e.BaseAsset, e.QuotedAsset});
             modelBuilder.Entity<ConvertIndexPriceEntity>().HasIndex(e => e.UpdateDate);
             modelBuilder.Entity<ConvertIndexPriceEntity>().HasIndex(e => e.Error);
             
@@ -102,12 +101,19 @@ namespace Service.DwhExternalBalances.DataBase
                 .On(e => new {e.BaseAsset, e.QuotedAsset})
                 .RunAsync();
         }
-        
-        public async Task UpsertExternalBalances(IEnumerable<ExternalBalanceEntity> allBalances)
+
+        public async Task SinglUpsertConvertPrice(ConvertIndexPriceEntity item)
         {
-            await ExternalBalanceCollection
-                .UpsertRange(allBalances)
-                .On(e => new {e.Exchange, e.Asset, e.BalanceDate})
+            await ConvertPrice
+                .UpsertRange(item)
+                .On(e => new {e.BaseAsset, e.QuotedAsset})
+                .RunAsync();
+        }
+        
+        public async Task UpsertExternalBalances(IEnumerable<ExternalBalance> allBalances)
+        {
+            await ExternalBalances.UpsertRange(allBalances)
+                .On(e => new { e.Type, e.Name, e.Asset })
                 .RunAsync();
         }
     }
