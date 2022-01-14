@@ -20,7 +20,7 @@ namespace Service.DwhExternalBalances.Settings
         [YamlProperty("DwhExternalBalances.MyNoSqlReaderHostPort")]
         public string MyNoSqlReaderHostPort { get; set; }
         
-        [YamlProperty("DwhExternalBalances.ExternalMarketsSettings")]
-        public string ExternalMarketsSettings { get; set; }
+        [YamlProperty("DwhExternalBalances.ExternalApiGrpcUrl")]
+        public string ExternalApiGrpcUrl { get; set; }
     }
 }
