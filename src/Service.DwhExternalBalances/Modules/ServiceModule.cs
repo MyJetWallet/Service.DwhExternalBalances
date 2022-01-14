@@ -24,7 +24,7 @@ namespace Service.DwhExternalBalances.Modules
             builder.RegisterType<ExchangeBalanceJob>().As<IStartable>().AutoActivate().SingleInstance();
             builder.RegisterConvertIndexPricesClient(noSqlClient);
             builder.RegisterCurrentPricesClient(noSqlClient);
-            builder.RegisterExternalMarketClient(Program.Settings.ExternalApiGrpcUrl);
+            builder.RegisterExternalMarketClient(Program.Settings.ExternalMarketsSettings);
         }
     }
 }
