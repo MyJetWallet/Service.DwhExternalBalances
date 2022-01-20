@@ -46,8 +46,10 @@ namespace Service.DwhExternalBalances.DataBase
             modelBuilder.HasDefaultSchema(Schema);
 
             modelBuilder.Entity<ExternalBalance>().ToTable(AllExternalBalancesTableName);
-            modelBuilder.Entity<ExternalBalance>().HasKey(e=>new{e.Type, e.Name, e.Asset});
+            modelBuilder.Entity<ExternalBalance>().HasNoKey();
             modelBuilder.Entity<ExternalBalance>().Property(e => e.Volume).HasPrecision(18, 8);
+            modelBuilder.Entity<ExternalBalance>().Property(e => e.AssetNetwork).IsRequired(false);
+            modelBuilder.Entity<ExternalBalance>().Property(e => e.Name).IsRequired(false);
 
 
             modelBuilder.Entity<ExternalBalanceHistory>().ToTable(AllExternalBalancesHistoryTableName);
@@ -113,7 +115,7 @@ namespace Service.DwhExternalBalances.DataBase
         public async Task UpsertExternalBalances(IEnumerable<ExternalBalance> allBalances)
         {
             await ExternalBalances.UpsertRange(allBalances)
-                .On(e => new { e.Type, e.Name, e.Asset })
+                .On(e => new { e.Type, e.Name, e.Asset, e.AssetNetwork })
                 .RunAsync();
         }
     }

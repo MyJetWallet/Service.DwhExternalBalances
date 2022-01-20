@@ -9,5 +9,6 @@ namespace Service.DwhExternalBalances.Domain.Models
         [DataMember(Order = 2)] public string Name { get; set; }
         [DataMember(Order = 3)] public string Asset { get; set; }
         [DataMember(Order = 4)] public decimal Volume { get; set; }
+        [DataMember(Order = 5)] public string AssetNetwork { get; set; }
     }
 }

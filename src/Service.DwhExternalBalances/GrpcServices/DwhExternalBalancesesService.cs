@@ -43,7 +43,6 @@ namespace Service.DwhExternalBalances.GrpcServices
             var bankBalances = new ExternalBalance()
             {
                 Type = "Bank",
-                Name = "Bank",
                 Asset = externalBalance.Asset,
                 Volume = externalBalance.Volume
             };

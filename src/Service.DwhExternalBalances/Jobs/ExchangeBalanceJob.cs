@@ -61,7 +61,6 @@ namespace Service.DwhExternalBalances.Jobs
                     allBalances.AddRange(balance.Balances.Select(e=> new ExternalBalance()
                         {
                             Asset = e.Symbol,
-                            Name = ex,
                             Type = ex,
                             Volume = e.Balance
                         }

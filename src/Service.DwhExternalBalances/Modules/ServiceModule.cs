@@ -6,6 +6,7 @@ using MyJetWallet.Sdk.NoSql;
 using Service.DwhExternalBalances.DataBase;
 using Service.DwhExternalBalances.Engines;
 using Service.DwhExternalBalances.Jobs;
+using Service.Fireblocks.Webhook.Client;
 using Service.IndexPrices.Client;
 
 
@@ -25,6 +26,8 @@ namespace Service.DwhExternalBalances.Modules
             builder.RegisterConvertIndexPricesClient(noSqlClient);
             builder.RegisterCurrentPricesClient(noSqlClient);
             builder.RegisterExternalMarketClient(Program.Settings.ExternalApiGrpcUrl);
+            builder.RegisterFireblocksWebhookCache(noSqlClient);
+            builder.RegisterType<FireBlockJob>().As<IStartable>().AutoActivate().SingleInstance();
         }
     }
 }
