@@ -29,7 +29,7 @@ namespace Service.DwhExternalBalances.Jobs
             _logger = logger;
             
             _timer = new MyTaskTimer(nameof(FireBlockJob),
-                TimeSpan.FromSeconds(60), _logger, DoTime);
+                TimeSpan.FromSeconds(70), _logger, DoTime);
         }
         
         private async Task DoTime()
