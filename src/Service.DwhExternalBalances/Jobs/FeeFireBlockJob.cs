@@ -30,7 +30,7 @@ namespace Service.DwhExternalBalances.Jobs
             _transactionHistoryService = transactionHistoryService;
             _logger = logger;
             _dwhDbContextFactory = dwhDbContextFactory;
-            _timer = new MyTaskTimer(nameof(FeeFireBlockJob),TimeSpan.FromSeconds(10), _logger, DoTime);
+            _timer = new MyTaskTimer(nameof(FeeFireBlockJob),TimeSpan.FromSeconds(300), _logger, DoTime);
         }
 
         private async Task DoTime()
@@ -56,7 +56,7 @@ namespace Service.DwhExternalBalances.Jobs
                         new GetTransactionHistoryRequest()
                         {
                             BeforeUnixTime = currentUnixTime,
-                            Take = 100
+                            Take = 200
                         });
 
                     if (transaction.Error != null)
@@ -89,7 +89,7 @@ namespace Service.DwhExternalBalances.Jobs
 
                 await using var ctx = _dwhDbContextFactory.Create();
                 await ctx.UpsertFeeTransferFireBlocks(transactionList);
-                _logger.LogInformation("Fireblock transfer saved {fee} : ",
+                _logger.LogInformation("Fireblock transfer saved {fee}",
                     transactionList.Count);
             }
             catch (Exception ex)
