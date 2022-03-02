@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Fireblocks.Domain.Models.TransactionHistories;
 using Service.DwhExternalBalances.DataBase.Models;
 using Service.DwhExternalBalances.Domain.Models;
 
@@ -16,6 +17,7 @@ namespace Service.DwhExternalBalances.DataBase
         private const string MarketPriceTableName = "MarketPrice";
         private const string ConvertIndexPriceTableName = "ConvertPrice";
         private const string ExternalBalanceTableName = "ExternalBalance";
+        private const string FeeTransferFireBlocksTableName = "FeeTransferFireBlocks";
 
         public static ILoggerFactory LoggerFactory { get; set; }
 
@@ -24,6 +26,7 @@ namespace Service.DwhExternalBalances.DataBase
         public DbSet<MarketPriceEntity> MarketPrice { get; set; }
         public DbSet<ConvertIndexPriceEntity> ConvertPrice { get; set; }
         private DbSet<ExternalBalanceEntity> ExternalBalanceCollection { get; set; }
+        public DbSet<TransactionHistory> TransactionHistories { get; set; }
         
 
         public DwhContext(DbContextOptions options) : base(options)
@@ -86,6 +89,9 @@ namespace Service.DwhExternalBalances.DataBase
             modelBuilder.Entity<ExternalBalanceEntity>().HasIndex(e => e.Asset);
             modelBuilder.Entity<ExternalBalanceEntity>().HasIndex(e => e.BalanceDate);
 
+            modelBuilder.Entity<TransactionHistory>().ToTable(FeeTransferFireBlocksTableName);
+            modelBuilder.Entity<TransactionHistory>().HasNoKey();
+
         }
         
         public async Task UpsertMarketPrice(IEnumerable<MarketPriceEntity> prices)
@@ -116,6 +122,13 @@ namespace Service.DwhExternalBalances.DataBase
         {
             await ExternalBalances.UpsertRange(allBalances)
                 .On(e => new { e.Type, e.Name, e.Asset, e.AssetNetwork })
+                .RunAsync();
+        }
+
+        public async Task UpsertFeeTransferFireBlocks(IEnumerable<TransactionHistory> transaction)
+        {
+            await TransactionHistories.UpsertRange(transaction)
+                .On(e=>e.TxHash)
                 .RunAsync();
         }
     }

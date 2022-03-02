@@ -22,5 +22,8 @@ namespace Service.DwhExternalBalances.Settings
         
         [YamlProperty("DwhExternalBalances.ExternalApiGrpcUrl")]
         public string ExternalApiGrpcUrl { get; set; }
+
+        [YamlProperty("DwhExternalBalances.FireblocksApiUrl")]
+        public string FireblocksApiUrl  { get; set; }
     }
 }
