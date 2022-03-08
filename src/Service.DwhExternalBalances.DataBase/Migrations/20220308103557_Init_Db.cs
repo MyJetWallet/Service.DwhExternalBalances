@@ -5,26 +5,58 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Service.DwhExternalBalances.DataBase.Migrations
 {
-    public partial class PriceAndBalance : Migration
+    public partial class Init_Db : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "data");
+
+            migrationBuilder.CreateTable(
+                name: "AllExternalBalances",
+                schema: "data",
+                columns: table => new
+                {
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Asset = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Volume = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
+                    AssetNetwork = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AllExternalBalancesHistory",
+                schema: "data",
+                columns: table => new
+                {
+                    Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Asset = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Timestemp = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Volume = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AllExternalBalancesHistory", x => new { x.Type, x.Name, x.Asset, x.Timestemp });
+                });
+
             migrationBuilder.CreateTable(
                 name: "ConvertPrice",
                 schema: "data",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    BaseAsset = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
-                    QuotedAsset = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
+                    BaseAsset = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    QuotedAsset = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Error = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ConvertPrice", x => x.Id);
+                    table.PrimaryKey("PK_ConvertPrice", x => new { x.BaseAsset, x.QuotedAsset });
                 });
 
             migrationBuilder.CreateTable(
@@ -65,13 +97,37 @@ namespace Service.DwhExternalBalances.DataBase.Migrations
                     table.PrimaryKey("PK_MarketPrice", x => x.Id);
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_ConvertPrice_BaseAsset_QuotedAsset",
+            migrationBuilder.CreateTable(
+                name: "TransactionFireBlocks",
                 schema: "data",
-                table: "ConvertPrice",
-                columns: new[] { "BaseAsset", "QuotedAsset" },
-                unique: true,
-                filter: "[BaseAsset] IS NOT NULL AND [QuotedAsset] IS NOT NULL");
+                columns: table => new
+                {
+                    TxHash = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FireblocksAssetId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Id = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedDateUnix = table.Column<long>(type: "bigint", nullable: false),
+                    UpdatedDateUnix = table.Column<long>(type: "bigint", nullable: false),
+                    FireblocksFeeAssetId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Fee = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    SourceAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DestinationAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Source_Id = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Source_Type = table.Column<int>(type: "int", nullable: true),
+                    Source_Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Destination_Id = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Destination_Type = table.Column<int>(type: "int", nullable: true),
+                    Destination_Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AssetSymbol = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AssetNetwork = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FeeAssetSymbol = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FeeAssetNetwork = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TransactionFireBlocks", x => new { x.TxHash, x.FireblocksAssetId });
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ConvertPrice_Error",
@@ -135,10 +191,24 @@ namespace Service.DwhExternalBalances.DataBase.Migrations
                 columns: new[] { "Source", "SourceMarket" },
                 unique: true,
                 filter: "[Source] IS NOT NULL AND [SourceMarket] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransactionFireBlocks_UpdatedDateUnix",
+                schema: "data",
+                table: "TransactionFireBlocks",
+                column: "UpdatedDateUnix");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AllExternalBalances",
+                schema: "data");
+
+            migrationBuilder.DropTable(
+                name: "AllExternalBalancesHistory",
+                schema: "data");
+
             migrationBuilder.DropTable(
                 name: "ConvertPrice",
                 schema: "data");
@@ -149,6 +219,10 @@ namespace Service.DwhExternalBalances.DataBase.Migrations
 
             migrationBuilder.DropTable(
                 name: "MarketPrice",
+                schema: "data");
+
+            migrationBuilder.DropTable(
+                name: "TransactionFireBlocks",
                 schema: "data");
         }
     }

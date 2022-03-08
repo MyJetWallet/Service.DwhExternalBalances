@@ -25,6 +25,12 @@ namespace Service.DwhExternalBalances.DataBase.Migrations
 
             modelBuilder.Entity("MyJetWallet.Fireblocks.Domain.Models.TransactionHistories.TransactionHistory", b =>
                 {
+                    b.Property<string>("TxHash")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FireblocksAssetId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
@@ -40,9 +46,6 @@ namespace Service.DwhExternalBalances.DataBase.Migrations
                     b.Property<string>("DestinationAddress")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("DestinationId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<decimal>("Fee")
                         .HasColumnType("decimal(18,2)");
 
@@ -50,9 +53,6 @@ namespace Service.DwhExternalBalances.DataBase.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FeeAssetSymbol")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FireblocksAssetId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FireblocksFeeAssetId")
@@ -64,39 +64,17 @@ namespace Service.DwhExternalBalances.DataBase.Migrations
                     b.Property<string>("SourceAddress")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SourceId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
-
-                    b.Property<string>("TxHash")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<long>("UpdatedDateUnix")
                         .HasColumnType("bigint");
 
-                    b.HasIndex("DestinationId");
+                    b.HasKey("TxHash", "FireblocksAssetId");
 
-                    b.HasIndex("SourceId");
+                    b.HasIndex("UpdatedDateUnix");
 
-                    b.ToTable("FeeTransferFireBlocks", "data");
-                });
-
-            modelBuilder.Entity("MyJetWallet.Fireblocks.Domain.Models.TransactionHistories.TransferPeerPath", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TransferPeerPath", "data");
+                    b.ToTable("TransactionFireBlocks", "data");
                 });
 
             modelBuilder.Entity("Service.DwhExternalBalances.DataBase.Models.ConvertIndexPriceEntity", b =>
@@ -263,13 +241,55 @@ namespace Service.DwhExternalBalances.DataBase.Migrations
 
             modelBuilder.Entity("MyJetWallet.Fireblocks.Domain.Models.TransactionHistories.TransactionHistory", b =>
                 {
-                    b.HasOne("MyJetWallet.Fireblocks.Domain.Models.TransactionHistories.TransferPeerPath", "Destination")
-                        .WithMany()
-                        .HasForeignKey("DestinationId");
+                    b.OwnsOne("MyJetWallet.Fireblocks.Domain.Models.TransactionHistories.TransferPeerPath", "Destination", b1 =>
+                        {
+                            b1.Property<string>("TransactionHistoryTxHash")
+                                .HasColumnType("nvarchar(450)");
 
-                    b.HasOne("MyJetWallet.Fireblocks.Domain.Models.TransactionHistories.TransferPeerPath", "Source")
-                        .WithMany()
-                        .HasForeignKey("SourceId");
+                            b1.Property<string>("TransactionHistoryFireblocksAssetId")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("Id")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("Name")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int>("Type")
+                                .HasColumnType("int");
+
+                            b1.HasKey("TransactionHistoryTxHash", "TransactionHistoryFireblocksAssetId");
+
+                            b1.ToTable("TransactionFireBlocks", "data");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TransactionHistoryTxHash", "TransactionHistoryFireblocksAssetId");
+                        });
+
+                    b.OwnsOne("MyJetWallet.Fireblocks.Domain.Models.TransactionHistories.TransferPeerPath", "Source", b1 =>
+                        {
+                            b1.Property<string>("TransactionHistoryTxHash")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("TransactionHistoryFireblocksAssetId")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("Id")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("Name")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int>("Type")
+                                .HasColumnType("int");
+
+                            b1.HasKey("TransactionHistoryTxHash", "TransactionHistoryFireblocksAssetId");
+
+                            b1.ToTable("TransactionFireBlocks", "data");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TransactionHistoryTxHash", "TransactionHistoryFireblocksAssetId");
+                        });
 
                     b.Navigation("Destination");
 
