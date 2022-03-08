@@ -44,6 +44,7 @@ namespace Service.DwhExternalBalances.Jobs
             
             var currentUnixTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var lastTsFromDatabase = await GetLastTimeFromDb();
+            var transactionPrev = new List<(string, string)>();
             
             try
             {
@@ -64,12 +65,27 @@ namespace Service.DwhExternalBalances.Jobs
 
                     if (transaction.History == null || !transaction.History.Any())
                         break;
+
+
+                    var listToUpdate = new List<TransactionHistory>();
+                    foreach (var item in transaction.History)
+                    {
+                        if (!transactionPrev.Contains((item.TxHash, item.FireblocksAssetId))
+                            && item.UpdatedDateUnix >= lastTsFromDatabase)
+                        {
+                            listToUpdate.Add(item);
+                            transactionPrev.Add((item.TxHash, item.FireblocksAssetId));
+                        }
+                    }
+                    
+                    if (!listToUpdate.Any())
+                        break;
                     
                     await using var ctx = _dwhDbContextFactory.Create();
-                    await ctx.UpsertFeeTransferFireBlocks(transaction.History);
-                    _logger.LogInformation("Fireblock transaction saved {count}", transaction.History.Count);
+                    await ctx.UpsertFeeTransferFireBlocks(listToUpdate);
+                    _logger.LogInformation("Fireblock transaction saved {count}", listToUpdate.Count);
 
-                    currentUnixTime = transaction.History.Max(e => e.UpdatedDateUnix);
+                    currentUnixTime = transaction.History.Min(e => e.UpdatedDateUnix);
                 } while (currentUnixTime > lastTsFromDatabase);
 
             }
