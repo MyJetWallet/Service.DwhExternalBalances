@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.Service;
+using Service.DwhExternalBalances.Jobs;
 
 namespace Service.DwhExternalBalances
 {
@@ -10,22 +11,25 @@ namespace Service.DwhExternalBalances
         
         private readonly MyNoSqlClientLifeTime _myNoSqlClientLifeTime;
         private readonly ILogger<ApplicationLifetimeManager> _logger;
+        private readonly DictionariesJob _dictionariesJob;
 
         public ApplicationLifetimeManager(
             IHostApplicationLifetime appLifetime, 
             ILogger<ApplicationLifetimeManager> logger,
-            MyNoSqlClientLifeTime myNoSqlClientLifeTime
-            )
+            MyNoSqlClientLifeTime myNoSqlClientLifeTime, 
+            DictionariesJob dictionariesJob)
             : base(appLifetime)
         {
             _logger = logger;
-            _myNoSqlClientLifeTime = myNoSqlClientLifeTime; 
+            _myNoSqlClientLifeTime = myNoSqlClientLifeTime;
+            _dictionariesJob = dictionariesJob;
         }
 
         protected override void OnStarted()
         {
             _logger.LogInformation("OnStarted has been called.");
             _myNoSqlClientLifeTime.Start();
+            _dictionariesJob.Start();
         }
 
         protected override void OnStopping()

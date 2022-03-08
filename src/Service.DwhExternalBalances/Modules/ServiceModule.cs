@@ -3,6 +3,9 @@ using Autofac.Core;
 using Autofac.Core.Registration;
 using MyJetWallet.Domain.ExternalMarketApi;
 using MyJetWallet.Sdk.NoSql;
+using Service.AssetsDictionary.Client;
+using Service.AssetsDictionary.Client.Grpc;
+using Service.AssetsDictionary.Grpc;
 using Service.DwhExternalBalances.DataBase;
 using Service.DwhExternalBalances.Engines;
 using Service.DwhExternalBalances.Jobs;
@@ -18,6 +21,7 @@ namespace Service.DwhExternalBalances.Modules
         protected override void Load(ContainerBuilder builder)
         {
             var noSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
+            var assetDictionaryFactory = new AssetsDictionaryClientFactory(Program.Settings.AssetDictionaryGrpcServiceUrl);
 
             builder.RegisterType<DwhDbContextFactory>().As<IDwhDbContextFactory>().SingleInstance();
             builder.RegisterType<IndexPriceJob>().As<IStartable>().AutoActivate().SingleInstance();
@@ -32,6 +36,18 @@ namespace Service.DwhExternalBalances.Modules
             builder.RegisterFireblocksApiClient(Program.Settings.FireblocksApiUrl);
             
             builder.RegisterType<FeeFireBlockJob>().As<IStartable>().AutoActivate().SingleInstance();
+            //builder.RegisterAssetsDictionaryClients(noSqlClient);
+            builder.RegisterInstance(assetDictionaryFactory.GetAssetsDictionaryService())
+                .As<IAssetsDictionaryService>()
+                .SingleInstance();
+            builder.RegisterInstance(assetDictionaryFactory.GetSpotInstrumentsDictionaryService())
+                .As<ISpotInstrumentsDictionaryService>()
+                .SingleInstance();
+            builder.RegisterInstance(assetDictionaryFactory.GetMarketReferenceDictionaryService())
+                .As<IMarketReferencesDictionaryService>()
+                .SingleInstance();
+            
+            builder.RegisterType<DictionariesJob>().AsSelf().SingleInstance();
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Fireblocks.Domain.Models.TransactionHistories;
+using Service.AssetsDictionary.Domain.Models;
 using Service.DwhExternalBalances.DataBase.Models;
 using Service.DwhExternalBalances.Domain.Models;
 
@@ -18,9 +19,11 @@ namespace Service.DwhExternalBalances.DataBase
         private const string ConvertIndexPriceTableName = "ConvertPrice";
         private const string ExternalBalanceTableName = "ExternalBalance";
         private const string TransactionFireBlocksTableName = "TransactionFireBlocks";
+        private const string AssetsDictionaryTableName = "AssetsDictionary";
+        private const string SpotInstrumentsTableName = "SpotInstrument";
+        private const string MarketReferenceTableName = "MarketReference";
 
         public static ILoggerFactory LoggerFactory { get; set; }
-
         public DbSet<ExternalBalance> ExternalBalances { get; set; }
         public DbSet<ExternalBalanceHistory> ExternalBalancesHistory { get; set; }
         public DbSet<MarketPriceEntity> MarketPrice { get; set; }
@@ -28,6 +31,12 @@ namespace Service.DwhExternalBalances.DataBase
         private DbSet<ExternalBalanceEntity> ExternalBalanceCollection { get; set; }
         public DbSet<TransactionHistory> TransactionHistories { get; set; }
         
+        public DbSet<Asset> Assets { get; set; }
+        
+        public DbSet<SpotInstrument> SpotInstruments { get; set; }
+        
+        public DbSet<MarketReference> MarketReferences { get; set; }
+
 
         public DwhContext(DbContextOptions options) : base(options)
         {
@@ -95,6 +104,16 @@ namespace Service.DwhExternalBalances.DataBase
             modelBuilder.Entity<TransactionHistory>().OwnsOne(e => e.Source);
             modelBuilder.Entity<TransactionHistory>().OwnsOne(e => e.Destination);
 
+            modelBuilder.Entity<Asset>().ToTable(AssetsDictionaryTableName);
+            modelBuilder.Entity<Asset>().HasNoKey();
+            modelBuilder.Entity<Asset>().Ignore(e => e.DepositBlockchains);
+            modelBuilder.Entity<Asset>().Ignore(e => e.WithdrawalBlockchains);
+
+            modelBuilder.Entity<SpotInstrument>().ToTable(SpotInstrumentsTableName);
+            modelBuilder.Entity<SpotInstrument>().HasNoKey();
+
+            modelBuilder.Entity<MarketReference>().ToTable(MarketReferenceTableName);
+            modelBuilder.Entity<MarketReference>().HasNoKey();
         }
         
         public async Task UpsertMarketPrice(IEnumerable<MarketPriceEntity> prices)
@@ -128,11 +147,24 @@ namespace Service.DwhExternalBalances.DataBase
                 .RunAsync();
         }
 
-        public async Task UpsertFeeTransferFireBlocks(IEnumerable<TransactionHistory> transaction)
+        public async Task UpsertAssetDictionary(IEnumerable<Asset> assets)
         {
-            await TransactionHistories
-                .UpsertRange(transaction)
-                .On(e=>new {e.TxHash, e.FireblocksAssetId})
+            await Assets.UpsertRange(assets)
+                .On(e => new { e.BrokerId, e.Symbol })
+                .RunAsync();
+        }
+
+        public async Task UpsertSpotInstruments(IEnumerable<SpotInstrument> spotInstruments)
+        {
+            await SpotInstruments.UpsertRange(spotInstruments)
+                .On(e => new { e.BrokerId, e.Symbol })
+                .RunAsync();
+        }
+
+        public async Task UpsertMarketReference(IEnumerable<MarketReference> marketReferences)
+        {
+            await MarketReferences.UpsertRange(marketReferences)
+                .On(e => new { e.BrokerId, e.Id })
                 .RunAsync();
         }
     }
