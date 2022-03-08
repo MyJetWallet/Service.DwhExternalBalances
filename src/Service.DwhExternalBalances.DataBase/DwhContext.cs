@@ -17,7 +17,7 @@ namespace Service.DwhExternalBalances.DataBase
         private const string MarketPriceTableName = "MarketPrice";
         private const string ConvertIndexPriceTableName = "ConvertPrice";
         private const string ExternalBalanceTableName = "ExternalBalance";
-        private const string FeeTransferFireBlocksTableName = "FeeTransferFireBlocks";
+        private const string TransactionFireBlocksTableName = "TransactionFireBlocks";
 
         public static ILoggerFactory LoggerFactory { get; set; }
 
@@ -89,8 +89,11 @@ namespace Service.DwhExternalBalances.DataBase
             modelBuilder.Entity<ExternalBalanceEntity>().HasIndex(e => e.Asset);
             modelBuilder.Entity<ExternalBalanceEntity>().HasIndex(e => e.BalanceDate);
 
-            modelBuilder.Entity<TransactionHistory>().ToTable(FeeTransferFireBlocksTableName);
-            modelBuilder.Entity<TransactionHistory>().HasNoKey();
+            modelBuilder.Entity<TransactionHistory>().ToTable(TransactionFireBlocksTableName);
+            modelBuilder.Entity<TransactionHistory>().HasKey(e => new {e.TxHash, e.FireblocksAssetId});
+            modelBuilder.Entity<TransactionHistory>().HasIndex(e => e.UpdatedDateUnix);
+            modelBuilder.Entity<TransactionHistory>().OwnsOne(e => e.Source);
+            modelBuilder.Entity<TransactionHistory>().OwnsOne(e => e.Destination);
 
         }
         
@@ -127,8 +130,9 @@ namespace Service.DwhExternalBalances.DataBase
 
         public async Task UpsertFeeTransferFireBlocks(IEnumerable<TransactionHistory> transaction)
         {
-            await TransactionHistories.UpsertRange(transaction)
-                .On(e=>e.TxHash)
+            await TransactionHistories
+                .UpsertRange(transaction)
+                .On(e=>new {e.TxHash, e.FireblocksAssetId})
                 .RunAsync();
         }
     }

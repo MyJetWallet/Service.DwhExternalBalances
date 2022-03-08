@@ -30,6 +30,7 @@ namespace Service.DwhExternalBalances.Modules
             builder.RegisterFireblocksWebhookCache(noSqlClient);
             builder.RegisterType<FireBlockJob>().As<IStartable>().AutoActivate().SingleInstance();
             builder.RegisterFireblocksApiClient(Program.Settings.FireblocksApiUrl);
+            
             builder.RegisterType<FeeFireBlockJob>().As<IStartable>().AutoActivate().SingleInstance();
         }
     }

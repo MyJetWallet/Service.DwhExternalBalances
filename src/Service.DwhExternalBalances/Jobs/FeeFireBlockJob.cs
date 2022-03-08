@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Fireblocks.Domain.Models.TransactionHistories;
 using MyJetWallet.Sdk.Service.Tools;
@@ -24,7 +25,7 @@ namespace Service.DwhExternalBalances.Jobs
 
         public FeeFireBlockJob(ITransactionHistoryService transactionHistoryService,
             ILogger<FeeFireBlockJob> logger,
-            IDwhDbContextFactory dwhDbContextFactory 
+            IDwhDbContextFactory dwhDbContextFactory
             )
         {
             _transactionHistoryService = transactionHistoryService;
@@ -40,19 +41,15 @@ namespace Service.DwhExternalBalances.Jobs
 
         private async Task GetTransaction()
         {
-            var factory = new FireblocksApiClientFactory(Program.Settings.FireblocksApiUrl);
-            var client = factory.GetVaultAccountService();
-            var assetsClient = factory.GetSupportedAssetServiceService();
-            var transactionHistoryClient = factory.GetTransactionHistoryService();
+            
             var currentUnixTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var transactionList = new List<TransactionHistory>();
-            var transactionHash = new HashSet<string>();
-
+            var lastTsFromDatabase = await GetLastTimeFromDb();
+            
             try
             {
                 do
                 {
-                    var transaction = await transactionHistoryClient.GetTransactionHistoryAsync(
+                    var transaction = await _transactionHistoryService.GetTransactionHistoryAsync(
                         new GetTransactionHistoryRequest()
                         {
                             BeforeUnixTime = currentUnixTime,
@@ -60,43 +57,39 @@ namespace Service.DwhExternalBalances.Jobs
                         });
 
                     if (transaction.Error != null)
+                    {
+                        _logger.LogError($"Cannot get transactions. error: {transaction.Error.Message} ({transaction.Error.ErrorCode}). FromTime: {currentUnixTime}");
                         break;
+                    }
 
                     if (transaction.History == null || !transaction.History.Any())
                         break;
+                    
+                    await using var ctx = _dwhDbContextFactory.Create();
+                    await ctx.UpsertFeeTransferFireBlocks(transaction.History);
+                    _logger.LogInformation("Fireblock transaction saved {count}", transaction.History.Count);
 
-                    var count = 0;
-                    foreach (var item in transaction.History)
-                    {
-                        if (transactionHash.Contains(item.TxHash))
-                            continue;
+                    currentUnixTime = transaction.History.Max(e => e.UpdatedDateUnix);
+                } while (currentUnixTime > lastTsFromDatabase);
 
-                        if (item.Source != null && (item.Source.Type == TransferPeerPathType.VAULT_ACCOUNT) ||
-                            (item.Source.Type == TransferPeerPathType.GAS_STATION))
-                        {
-                            transactionHash.Add(item.TxHash);
-                            transactionList.Add(item);
-                            count++;
-                        }
-                    }
-
-                    if (count == 0)
-                        break;
-
-                    currentUnixTime = transaction.History.Last().CreatedDateUnix;
-                } while (currentUnixTime != long.MaxValue);
-
-
-                await using var ctx = _dwhDbContextFactory.Create();
-                await ctx.UpsertFeeTransferFireBlocks(transactionList);
-                _logger.LogInformation("Fireblock transfer saved {fee}",
-                    transactionList.Count);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, "Error on GetTransaction from fireblocks");
             }
 
+        }
+
+        private async Task<long> GetLastTimeFromDb()
+        {
+            await using var ctx = _dwhDbContextFactory.Create();
+            
+            var lastRecord = await ctx
+                .TransactionHistories
+                .OrderByDescending(e => e.UpdatedDateUnix)
+                .FirstOrDefaultAsync();
+            
+            return lastRecord?.UpdatedDateUnix ?? 0;
         }
 
         public void Start()
