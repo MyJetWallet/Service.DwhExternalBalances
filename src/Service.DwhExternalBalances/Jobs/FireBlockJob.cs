@@ -52,7 +52,7 @@ namespace Service.DwhExternalBalances.Jobs
                     Asset = e.AssetSymbol,  
                     Type = "Fireblocks",
                     AssetNetwork = e.AssetNetwork,
-                    Volume = e.VaultAsset.Total
+                    Volume = e.VaultAsset.Available
                 }));
                 
                 await using var ctx = _dwhDbContextFactory.Create();
