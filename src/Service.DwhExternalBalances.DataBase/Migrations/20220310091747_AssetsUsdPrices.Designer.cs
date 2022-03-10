@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Service.DwhExternalBalances.DataBase;
 
@@ -11,9 +12,10 @@ using Service.DwhExternalBalances.DataBase;
 namespace Service.DwhExternalBalances.DataBase.Migrations
 {
     [DbContext(typeof(DwhContext))]
-    partial class DwhContextModelSnapshot : ModelSnapshot
+    [Migration("20220310091747_AssetsUsdPrices")]
+    partial class AssetsUsdPrices
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -292,22 +294,6 @@ namespace Service.DwhExternalBalances.DataBase.Migrations
                         .IsUnique();
 
                     b.ToTable("ExternalBalance", "data");
-                });
-
-            modelBuilder.Entity("Service.DwhExternalBalances.DataBase.Models.IndexPricesEntity", b =>
-                {
-                    b.Property<string>("Asset")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("UpdateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("UsdPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Asset");
-
-                    b.ToTable("AssetsUsdPrices", "data");
                 });
 
             modelBuilder.Entity("Service.DwhExternalBalances.DataBase.Models.MarketPriceEntity", b =>

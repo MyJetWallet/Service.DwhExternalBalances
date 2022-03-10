@@ -7,6 +7,7 @@ using MyJetWallet.Fireblocks.Domain.Models.TransactionHistories;
 using Service.AssetsDictionary.Domain.Models;
 using Service.DwhExternalBalances.DataBase.Models;
 using Service.DwhExternalBalances.Domain.Models;
+using Service.IndexPrices.Domain.Models;
 
 namespace Service.DwhExternalBalances.DataBase
 {
@@ -14,7 +15,6 @@ namespace Service.DwhExternalBalances.DataBase
     {
         public const string Schema = "data";
         private const string AllExternalBalancesTableName = "AllExternalBalances";
-        private const string AllExternalBalancesHistoryTableName = "AllExternalBalancesHistory";
         private const string MarketPriceTableName = "MarketPrice";
         private const string ConvertIndexPriceTableName = "ConvertPrice";
         private const string ExternalBalanceTableName = "ExternalBalance";
@@ -22,21 +22,23 @@ namespace Service.DwhExternalBalances.DataBase
         private const string AssetsDictionaryTableName = "AssetsDictionary";
         private const string SpotInstrumentsTableName = "SpotInstrument";
         private const string MarketReferenceTableName = "MarketReference";
+        private const string IndexPriceTableName = "AssetsUsdPrices";
+        private const string IndexPriceShapShotTableName = "AssetsUsdPricesDailySnapShot";
 
         public static ILoggerFactory LoggerFactory { get; set; }
         public DbSet<ExternalBalance> ExternalBalances { get; set; }
-        public DbSet<ExternalBalanceHistory> ExternalBalancesHistory { get; set; }
         public DbSet<MarketPriceEntity> MarketPrice { get; set; }
         public DbSet<ConvertIndexPriceEntity> ConvertPrice { get; set; }
-        private DbSet<ExternalBalanceEntity> ExternalBalanceCollection { get; set; }
+        
+        public DbSet<ExternalBalanceEntity> ExternalBalanceCollection { get; set; }
         public DbSet<TransactionHistory> TransactionHistories { get; set; }
-        
         public DbSet<Asset> Assets { get; set; }
-        
         public DbSet<SpotInstrument> SpotInstruments { get; set; }
-        
         public DbSet<MarketReference> MarketReferences { get; set; }
-
+        public DbSet<IndexPricesEntity> IndexPrices { get; set; }
+        
+        public DbSet<IndexPrice> IndexPricesShanpshot { get; set; }
+        
 
         public DwhContext(DbContextOptions options) : base(options)
         {
@@ -62,11 +64,6 @@ namespace Service.DwhExternalBalances.DataBase
             modelBuilder.Entity<ExternalBalance>().Property(e => e.Volume).HasPrecision(18, 8);
             modelBuilder.Entity<ExternalBalance>().Property(e => e.AssetNetwork).IsRequired(false);
             modelBuilder.Entity<ExternalBalance>().Property(e => e.Name).IsRequired(false);
-
-
-            modelBuilder.Entity<ExternalBalanceHistory>().ToTable(AllExternalBalancesHistoryTableName);
-            modelBuilder.Entity<ExternalBalanceHistory>().HasKey(e => new { e.Type, e.Name, e.Asset, e.Timestemp });
-            modelBuilder.Entity<ExternalBalanceHistory>().Property(e => e.Volume).HasPrecision(18,8);
             
             modelBuilder.Entity<MarketPriceEntity>().ToTable(MarketPriceTableName);
             modelBuilder.Entity<MarketPriceEntity>().Property(e => e.Id).UseIdentityColumn();
@@ -114,6 +111,13 @@ namespace Service.DwhExternalBalances.DataBase
 
             modelBuilder.Entity<MarketReference>().ToTable(MarketReferenceTableName);
             modelBuilder.Entity<MarketReference>().HasNoKey();
+
+            modelBuilder.Entity<IndexPricesEntity>().ToTable(IndexPriceTableName);
+            modelBuilder.Entity<IndexPricesEntity>().HasKey(e => e.Asset);
+
+            modelBuilder.Entity<IndexPrice>().ToTable(IndexPriceShapShotTableName);
+            modelBuilder.Entity<IndexPrice>().Property(e => e.UpdateDate).HasColumnType("date");
+            modelBuilder.Entity<IndexPrice>().HasKey(e => new { e.Asset, e.UpdateDate});
         }
         
         public async Task UpsertMarketPrice(IEnumerable<MarketPriceEntity> prices)
@@ -165,6 +169,20 @@ namespace Service.DwhExternalBalances.DataBase
         {
             await MarketReferences.UpsertRange(marketReferences)
                 .On(e => new { e.BrokerId, e.Id })
+                .RunAsync();
+        }
+
+        public async Task UpdateIndexPrices(IEnumerable<IndexPricesEntity> indexPrices)
+        {
+            await IndexPrices.UpsertRange(indexPrices)
+                .On(e => e.Asset)
+                .RunAsync();
+        }
+
+        public async Task UpdateIndexPriceShapshot(IEnumerable<IndexPrice> indexPrices)
+        {
+            await IndexPricesShanpshot.UpsertRange(indexPrices)
+                .On(e => new { e.Asset, e.UpdateDate })
                 .RunAsync();
         }
     }

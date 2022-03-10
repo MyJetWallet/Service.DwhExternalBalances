@@ -15,13 +15,16 @@ namespace Service.DwhExternalBalances.Jobs
         private readonly ILogger<IndexPriceJob> _logger;
         private readonly MarketPriceEngine _marketPriceEngine;
         private readonly ConvertPriceEngine _convertPriceEngine;
+        private readonly AssetsUsdPricesEngine _assetsUsdPricesEngine;
 
         public IndexPriceJob(
             MarketPriceEngine marketPriceEngine,
             ConvertPriceEngine convertPriceEngine,
-            ILogger<IndexPriceJob> logger)
+            ILogger<IndexPriceJob> logger, 
+            AssetsUsdPricesEngine assetsUsdPricesEngine)
         {
             _logger = logger;
+            _assetsUsdPricesEngine = assetsUsdPricesEngine;
             _marketPriceEngine = marketPriceEngine;
             _convertPriceEngine = convertPriceEngine;
             _timer = new MyTaskTimer(nameof(IndexPriceJob), TimeSpan.FromSeconds(60), _logger, DoTime);
@@ -31,6 +34,8 @@ namespace Service.DwhExternalBalances.Jobs
         {
             await _marketPriceEngine.HandleMarketPrice();
             await _convertPriceEngine.HandleConvertPrice();
+            await _assetsUsdPricesEngine.GetIndexPricesForAssets();
+            await _assetsUsdPricesEngine.UpdateIndexPricesForAssetsSnapshot();
         }
 
         public void Start()

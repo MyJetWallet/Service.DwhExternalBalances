@@ -36,7 +36,7 @@ namespace Service.DwhExternalBalances.Modules
             builder.RegisterFireblocksApiClient(Program.Settings.FireblocksApiUrl);
             
             builder.RegisterType<FeeFireBlockJob>().As<IStartable>().AutoActivate().SingleInstance();
-            //builder.RegisterAssetsDictionaryClients(noSqlClient);
+            
             builder.RegisterInstance(assetDictionaryFactory.GetAssetsDictionaryService())
                 .As<IAssetsDictionaryService>()
                 .SingleInstance();
@@ -48,6 +48,10 @@ namespace Service.DwhExternalBalances.Modules
                 .SingleInstance();
             
             builder.RegisterType<DictionariesJob>().AsSelf().SingleInstance();
+
+            builder.RegisterIndexPricesClient(noSqlClient);
+
+            builder.RegisterType<AssetsUsdPricesEngine>().AsSelf().SingleInstance();
         }
     }
 }
