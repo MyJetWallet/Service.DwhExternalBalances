@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.Service.Tools;
 using MyNoSqlServer.Abstractions;
@@ -39,7 +40,6 @@ namespace Service.DwhExternalBalances.Jobs
 
         private async Task GetFireblockBalance()
         {
-
             try
             {
                 var fireblock = _vaultAssetNoSql.Get().ToList();
@@ -56,7 +56,10 @@ namespace Service.DwhExternalBalances.Jobs
                 }));
                 
                 await using var ctx = _dwhDbContextFactory.Create();
+                await using var tr = ctx.Database.BeginTransaction();
+                await ctx.Database.ExecuteSqlRawAsync("DELETE FROM data.AllExternalBalances WHERE Type = 'Fireblocks'");
                 await ctx.UpsertExternalBalances(fireblockBalance);
+                await tr.CommitAsync();
                 _logger.LogInformation("Fireblock saved {balanceCount} balances.", 
                     fireblockBalance.Count);
             }

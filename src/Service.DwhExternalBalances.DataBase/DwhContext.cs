@@ -17,7 +17,6 @@ namespace Service.DwhExternalBalances.DataBase
         private const string AllExternalBalancesTableName = "AllExternalBalances";
         private const string MarketPriceTableName = "MarketPrice";
         private const string ConvertIndexPriceTableName = "ConvertPrice";
-        private const string ExternalBalanceTableName = "ExternalBalance";
         private const string TransactionFireBlocksTableName = "TransactionFireBlocks";
         private const string AssetsDictionaryTableName = "AssetsDictionary";
         private const string SpotInstrumentsTableName = "SpotInstrument";
@@ -29,8 +28,6 @@ namespace Service.DwhExternalBalances.DataBase
         public DbSet<ExternalBalance> ExternalBalances { get; set; }
         public DbSet<MarketPriceEntity> MarketPrice { get; set; }
         public DbSet<ConvertIndexPriceEntity> ConvertPrice { get; set; }
-        
-        public DbSet<ExternalBalanceEntity> ExternalBalanceCollection { get; set; }
         public DbSet<TransactionHistory> TransactionHistories { get; set; }
         public DbSet<Asset> Assets { get; set; }
         public DbSet<SpotInstrument> SpotInstruments { get; set; }
@@ -85,16 +82,6 @@ namespace Service.DwhExternalBalances.DataBase
             modelBuilder.Entity<ConvertIndexPriceEntity>().HasIndex(e => e.UpdateDate);
             modelBuilder.Entity<ConvertIndexPriceEntity>().HasIndex(e => e.Error);
             
-            modelBuilder.Entity<ExternalBalanceEntity>().ToTable(ExternalBalanceTableName);
-            modelBuilder.Entity<ExternalBalanceEntity>().Property(e => e.Id).UseIdentityColumn();
-            modelBuilder.Entity<ExternalBalanceEntity>().HasKey(e => e.Id);
-            modelBuilder.Entity<ExternalBalanceEntity>().Property(e => e.Asset).HasMaxLength(64);
-            modelBuilder.Entity<ExternalBalanceEntity>().Property(e => e.Exchange).HasMaxLength(64);
-            modelBuilder.Entity<ExternalBalanceEntity>().HasIndex(e => new {e.Exchange, e.Asset, e.BalanceDate}).IsUnique();
-            modelBuilder.Entity<ExternalBalanceEntity>().HasIndex(e => e.Exchange);
-            modelBuilder.Entity<ExternalBalanceEntity>().HasIndex(e => e.Asset);
-            modelBuilder.Entity<ExternalBalanceEntity>().HasIndex(e => e.BalanceDate);
-
             modelBuilder.Entity<TransactionHistory>().ToTable(TransactionFireBlocksTableName);
             modelBuilder.Entity<TransactionHistory>().HasKey(e => new {e.TxHash, e.FireblocksAssetId});
             modelBuilder.Entity<TransactionHistory>().HasIndex(e => e.UpdatedDateUnix);
