@@ -101,10 +101,12 @@ namespace Service.DwhExternalBalances.DataBase
 
             modelBuilder.Entity<IndexPricesEntity>().ToTable(IndexPriceTableName);
             modelBuilder.Entity<IndexPricesEntity>().HasKey(e => e.Asset);
+            modelBuilder.Entity<IndexPricesEntity>().Property(e => e.UsdPrice).HasPrecision(18, 10);
 
             modelBuilder.Entity<IndexPrice>().ToTable(IndexPriceShapShotTableName);
             modelBuilder.Entity<IndexPrice>().Property(e => e.UpdateDate).HasColumnType("date");
             modelBuilder.Entity<IndexPrice>().HasKey(e => new { e.Asset, e.UpdateDate});
+            modelBuilder.Entity<IndexPrice>().Property(e => e.UsdPrice).HasPrecision(18, 10);
         }
         
         public async Task UpsertMarketPrice(IEnumerable<MarketPriceEntity> prices)
