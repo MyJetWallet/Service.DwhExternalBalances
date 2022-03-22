@@ -83,10 +83,12 @@ namespace Service.DwhExternalBalances.DataBase
             modelBuilder.Entity<ConvertIndexPriceEntity>().HasIndex(e => e.Error);
             
             modelBuilder.Entity<TransactionHistory>().ToTable(TransactionFireBlocksTableName);
-            modelBuilder.Entity<TransactionHistory>().HasKey(e => new {e.TxHash, e.FireblocksAssetId});
+            modelBuilder.Entity<TransactionHistory>().HasKey(e => e.Id);
             modelBuilder.Entity<TransactionHistory>().HasIndex(e => e.UpdatedDateUnix);
             modelBuilder.Entity<TransactionHistory>().OwnsOne(e => e.Source);
             modelBuilder.Entity<TransactionHistory>().OwnsOne(e => e.Destination);
+            modelBuilder.Entity<TransactionHistory>().Property(e => e.Amount).HasPrecision(18, 10);
+            modelBuilder.Entity<TransactionHistory>().Property(e => e.Fee).HasPrecision(18, 10);
 
             modelBuilder.Entity<Asset>().ToTable(AssetsDictionaryTableName);
             modelBuilder.Entity<Asset>().HasNoKey();
