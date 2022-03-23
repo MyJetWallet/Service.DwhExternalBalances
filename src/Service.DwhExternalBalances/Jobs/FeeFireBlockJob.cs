@@ -51,7 +51,7 @@ namespace Service.DwhExternalBalances.Jobs
                 _logger.LogWarning("GetTransaction fireblocks reset last time to 0");
             }
 
-            var transactionPrev = new List<(string, string)>();
+            var transactionPrev = new List<string>();
 
             {
                 await using var ctx = _dwhDbContextFactory.Create();
@@ -82,11 +82,11 @@ namespace Service.DwhExternalBalances.Jobs
                     var listToUpdate = new List<TransactionHistory>();
                     foreach (var item in transaction.History)
                     {
-                        if (!transactionPrev.Contains((item.TxHash, item.FireblocksAssetId))
+                        if (!transactionPrev.Contains((item.Id))
                             && item.UpdatedDateUnix >= lastTsFromDatabase)
                         {
                             listToUpdate.Add(item);
-                            transactionPrev.Add((item.TxHash, item.FireblocksAssetId));
+                            transactionPrev.Add(item.Id);
                         }
                     }
                     
