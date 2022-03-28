@@ -7,6 +7,7 @@ using MyJetWallet.Fireblocks.Domain.Models.TransactionHistories;
 using Service.AssetsDictionary.Domain.Models;
 using Service.DwhExternalBalances.DataBase.Models;
 using Service.DwhExternalBalances.Domain.Models;
+using Service.Fireblocks.Api.Grpc.Models.GasStation;
 using Service.IndexPrices.Domain.Models;
 
 namespace Service.DwhExternalBalances.DataBase
@@ -23,6 +24,7 @@ namespace Service.DwhExternalBalances.DataBase
         private const string MarketReferenceTableName = "MarketReference";
         private const string IndexPriceTableName = "AssetsUsdPrices";
         private const string IndexPriceShapShotTableName = "AssetsUsdPricesDailySnapShot";
+        private const string GasStationBalanceTableName = "GasStationBalance";
 
         public static ILoggerFactory LoggerFactory { get; set; }
         public DbSet<ExternalBalance> ExternalBalances { get; set; }
@@ -33,9 +35,9 @@ namespace Service.DwhExternalBalances.DataBase
         public DbSet<SpotInstrument> SpotInstruments { get; set; }
         public DbSet<MarketReference> MarketReferences { get; set; }
         public DbSet<IndexPricesEntity> IndexPrices { get; set; }
-        
         public DbSet<IndexPrice> IndexPricesShanpshot { get; set; }
         
+        public DbSet<GasStationBalance> GasStationBalances { get; set; }
 
         public DwhContext(DbContextOptions options) : base(options)
         {
@@ -109,6 +111,10 @@ namespace Service.DwhExternalBalances.DataBase
             modelBuilder.Entity<IndexPrice>().Property(e => e.UpdateDate).HasColumnType("date");
             modelBuilder.Entity<IndexPrice>().HasKey(e => new { e.Asset, e.UpdateDate});
             modelBuilder.Entity<IndexPrice>().Property(e => e.UsdPrice).HasPrecision(18, 10);
+
+            modelBuilder.Entity<GasStationBalance>().ToTable(GasStationBalanceTableName);
+            modelBuilder.Entity<GasStationBalance>().HasKey(e => e.FireblocksAssetId);
+            modelBuilder.Entity<GasStationBalance>().Property(e => e.Balance).HasPrecision(18, 18);
         }
         
         public async Task UpsertMarketPrice(IEnumerable<MarketPriceEntity> prices)
@@ -174,6 +180,13 @@ namespace Service.DwhExternalBalances.DataBase
         {
             await IndexPricesShanpshot.UpsertRange(indexPrices)
                 .On(e => new { e.Asset, e.UpdateDate })
+                .RunAsync();
+        }
+
+        public async Task UpdateGasStationBalances(IEnumerable<GasStationBalance> balances)
+        {
+            await GasStationBalances.UpsertRange(balances)
+                .On(e => e.FireblocksAssetId)
                 .RunAsync();
         }
     }

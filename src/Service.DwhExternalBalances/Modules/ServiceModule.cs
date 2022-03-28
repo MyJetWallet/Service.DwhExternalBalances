@@ -48,10 +48,12 @@ namespace Service.DwhExternalBalances.Modules
                 .SingleInstance();
             
             builder.RegisterType<DictionariesJob>().AsSelf().SingleInstance();
-
+            
             builder.RegisterIndexPricesClient(noSqlClient);
 
             builder.RegisterType<AssetsUsdPricesEngine>().AsSelf().SingleInstance();
+            builder.RegisterType<GasStationBalanceJob>().As<IStartable>().AutoActivate().SingleInstance();
+
         }
     }
 }
