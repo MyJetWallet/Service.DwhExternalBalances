@@ -37,7 +37,7 @@ namespace Service.DwhExternalBalances.Jobs
             _dwhDbContextFactory = dwhDbContextFactory;
             
             _timer = new MyTaskTimer(nameof(ExchangeBalanceJob),
-                TimeSpan.FromSeconds(40), _logger, DoTime);
+                TimeSpan.FromSeconds(23), _logger, DoTime);
         }
         
         
