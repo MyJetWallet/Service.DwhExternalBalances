@@ -30,7 +30,7 @@ namespace Service.DwhExternalBalances.DataBase
         public DbSet<ExternalBalance> ExternalBalances { get; set; }
         public DbSet<MarketPriceEntity> MarketPrice { get; set; }
         public DbSet<ConvertIndexPriceEntity> ConvertPrice { get; set; }
-        public DbSet<TransactionHistory> TransactionHistories { get; set; }
+        public DbSet<TransactionHistoryEntity> TransactionHistories { get; set; }
         public DbSet<Asset> Assets { get; set; }
         public DbSet<SpotInstrument> SpotInstruments { get; set; }
         public DbSet<MarketReference> MarketReferences { get; set; }
@@ -84,13 +84,15 @@ namespace Service.DwhExternalBalances.DataBase
             modelBuilder.Entity<ConvertIndexPriceEntity>().HasIndex(e => e.UpdateDate);
             modelBuilder.Entity<ConvertIndexPriceEntity>().HasIndex(e => e.Error);
             
-            modelBuilder.Entity<TransactionHistory>().ToTable(TransactionFireBlocksTableName);
-            modelBuilder.Entity<TransactionHistory>().HasKey(e => e.Id);
-            modelBuilder.Entity<TransactionHistory>().HasIndex(e => e.UpdatedDateUnix);
-            modelBuilder.Entity<TransactionHistory>().OwnsOne(e => e.Source);
-            modelBuilder.Entity<TransactionHistory>().OwnsOne(e => e.Destination);
-            modelBuilder.Entity<TransactionHistory>().Property(e => e.Amount).HasPrecision(18, 10);
-            modelBuilder.Entity<TransactionHistory>().Property(e => e.Fee).HasPrecision(18, 10);
+            modelBuilder.Entity<TransactionHistoryEntity>().ToTable(TransactionFireBlocksTableName);
+            modelBuilder.Entity<TransactionHistoryEntity>().HasKey(e => e.Id);
+            modelBuilder.Entity<TransactionHistoryEntity>().HasIndex(e => e.UpdatedDateUnix);
+            modelBuilder.Entity<TransactionHistoryEntity>().OwnsOne(e => e.Source);
+            modelBuilder.Entity<TransactionHistoryEntity>().OwnsOne(e => e.Destination);
+            modelBuilder.Entity<TransactionHistoryEntity>().Property(e => e.Amount).HasPrecision(18, 10);
+            modelBuilder.Entity<TransactionHistoryEntity>().Property(e => e.Fee).HasPrecision(18, 10);
+            modelBuilder.Entity<TransactionHistoryEntity>().Property(e => e.AssetIndexPrice).HasPrecision(18, 10);
+            modelBuilder.Entity<TransactionHistoryEntity>().Property(e => e.FeeAssetIndexPrice).HasPrecision(18, 10);
 
             modelBuilder.Entity<Asset>().ToTable(AssetsDictionaryTableName);
             modelBuilder.Entity<Asset>().HasNoKey();

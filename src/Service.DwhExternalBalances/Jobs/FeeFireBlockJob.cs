@@ -9,10 +9,12 @@ using MyJetWallet.Fireblocks.Domain.Models.TransactionHistories;
 using MyJetWallet.Sdk.Service.Tools;
 using Serilog;
 using Service.DwhExternalBalances.DataBase;
+using Service.DwhExternalBalances.DataBase.Models;
 using Service.Fireblocks.Api.Client;
 using Service.Fireblocks.Api.Grpc;
 using Service.Fireblocks.Api.Grpc.Models.SupportedAssets;
 using Service.Fireblocks.Api.Grpc.Models.TransactionHistory;
+using Service.IndexPrices.Client;
 
 namespace Service.DwhExternalBalances.Jobs
 {
@@ -21,16 +23,18 @@ namespace Service.DwhExternalBalances.Jobs
         private readonly ITransactionHistoryService _transactionHistoryService;
         private readonly ILogger<FeeFireBlockJob> _logger;
         private readonly IDwhDbContextFactory _dwhDbContextFactory;
+        private readonly IIndexPricesClient _indexPrices;
         private readonly MyTaskTimer _timer;
 
         public FeeFireBlockJob(ITransactionHistoryService transactionHistoryService,
             ILogger<FeeFireBlockJob> logger,
-            IDwhDbContextFactory dwhDbContextFactory
-            )
+            IDwhDbContextFactory dwhDbContextFactory, 
+            IIndexPricesClient indexPrices)
         {
             _transactionHistoryService = transactionHistoryService;
             _logger = logger;
             _dwhDbContextFactory = dwhDbContextFactory;
+            _indexPrices = indexPrices;
             _timer = new MyTaskTimer(nameof(FeeFireBlockJob),TimeSpan.FromSeconds(300), _logger, DoTime);
         }
 
@@ -78,14 +82,36 @@ namespace Service.DwhExternalBalances.Jobs
                     if (transaction.History == null || !transaction.History.Any())
                         break;
 
-
-                    var listToUpdate = new List<TransactionHistory>();
+                    
+                    var listToUpdate = new List<TransactionHistoryEntity>();
                     foreach (var item in transaction.History)
                     {
                         if (!transactionPrev.Contains((item.Id))
                             && item.UpdatedDateUnix >= lastTsFromDatabase)
                         {
-                            listToUpdate.Add(item);
+                            
+                            listToUpdate.Add(new TransactionHistoryEntity()
+                            {
+                                Id = item.Id,
+                                TxHash = item.TxHash,
+                                CreatedDateUnix = item.CreatedDateUnix,
+                                UpdatedDateUnix = item.UpdatedDateUnix,
+                                FireblocksAssetId = item.FireblocksAssetId,
+                                FireblocksFeeAssetId = item.FireblocksFeeAssetId,
+                                Amount = item.Amount,
+                                Fee = item.Fee,
+                                Status = item.Status,
+                                SourceAddress = item.SourceAddress,
+                                DestinationAddress = item.DestinationAddress,
+                                Source = item.Source,
+                                Destination = item.Destination,
+                                AssetSymbol = item.AssetSymbol,
+                                AssetNetwork = item.AssetNetwork,
+                                FeeAssetSymbol = item.FeeAssetSymbol,
+                                FeeAssetNetwork = item.FeeAssetNetwork,
+                                AssetIndexPrice = _indexPrices.GetIndexPriceByAssetAsync(item.AssetSymbol).UsdPrice,
+                                FeeAssetIndexPrice = _indexPrices.GetIndexPriceByAssetAsync(item.FeeAssetSymbol).UsdPrice
+                            });
                             transactionPrev.Add(item.Id);
                         }
                     }
