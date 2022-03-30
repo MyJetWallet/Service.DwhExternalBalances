@@ -116,7 +116,7 @@ namespace Service.DwhExternalBalances.DataBase
 
             modelBuilder.Entity<GasStationBalance>().ToTable(GasStationBalanceTableName);
             modelBuilder.Entity<GasStationBalance>().HasKey(e => e.FireblocksAssetId);
-            modelBuilder.Entity<GasStationBalance>().Property(e => e.Balance).HasPrecision(18, 18);
+            modelBuilder.Entity<GasStationBalance>().Property(e => e.Balance).HasPrecision(18, 10);
         }
         
         public async Task UpsertMarketPrice(IEnumerable<MarketPriceEntity> prices)
