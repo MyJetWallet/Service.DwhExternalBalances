@@ -110,7 +110,7 @@ namespace Service.DwhExternalBalances.Jobs
                                 FeeAssetSymbol = item.FeeAssetSymbol,
                                 FeeAssetNetwork = item.FeeAssetNetwork,
                                 AssetIndexPrice = _indexPrices.GetIndexPriceByAssetAsync(item.AssetSymbol).UsdPrice,
-                                FeeAssetIndexPrice = _indexPrices.GetIndexPriceByAssetAsync(item.FeeAssetSymbol).UsdPrice
+                                FeeAssetIndexPrice = _indexPrices.GetIndexPriceByAssetAsync(item.FeeAssetNetwork).UsdPrice
                             });
                             transactionPrev.Add(item.Id);
                         }
