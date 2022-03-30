@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -38,7 +39,7 @@ namespace Service.DwhExternalBalances.Jobs
             try
             {
                 var balances = await _gasStationService.GetGasStationAsync(new GetGasStationRequest { });
-                var balancesList = balances.Balances.ToList();
+                var balancesList = balances.Balances?.ToList() ?? new List<GasStationBalance>();
 
                 await using var ctx = _dwhDbContextFactory.Create();
                 await ctx.UpdateGasStationBalances(balancesList);
@@ -46,7 +47,7 @@ namespace Service.DwhExternalBalances.Jobs
             }
             catch (Exception e)
             {
-                _logger.LogError(e.Message);
+                _logger.LogError(e, "Cannot update GasStationBalances");
             }
         }
 
