@@ -21,9 +21,13 @@ namespace Service.DwhExternalBalances.Engines
         public async Task HandleConvertPrice()
         {
             var prices = _convertIndexPricesClient.GetConvertIndexPricesAsync();
+                ;
             //var pricesEntities = prices.Select(e => new ConvertIndexPriceEntity(e)).ToList();
 
-            var priceGroupping = prices.Select(e => new ConvertIndexPriceEntity(e)).ToList();
+            var priceGroupping = prices
+                .Where(e => !string.IsNullOrEmpty(e.BaseAsset) && !string.IsNullOrEmpty(e.QuotedAsset))
+                .Select(e => new ConvertIndexPriceEntity(e))
+                .ToList();
 
             foreach (var item in priceGroupping)
             {
