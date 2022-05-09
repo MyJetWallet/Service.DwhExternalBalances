@@ -174,6 +174,33 @@ namespace Service.DwhExternalBalances.GrpcServices
                 throw;
             }
         }
+
+        public async Task<FeeFireblock> GetFireblockFeeByDate(DateTime from, DateTime to)
+        {
+            try
+            {
+                await using var ctx = new DbContext(_dwhContextOptionsBuilder.Options);
+                var query = $@"select isnull(sum(FeeToFireblock),0), 
+                isnull(sum(FeeOutSideFireblock),0),
+                isnull(sum(FeeInFireblock),0)
+                from service.fireblockfee
+                where updateddate >= @From and updateddate < @To";
+
+                var response = await ctx.Database.GetDbConnection()
+                    .QueryFirstOrDefaultAsync<FeeFireblock>(query, new
+                    {
+                        From = from,
+                        To = to
+                    });
+
+                return response;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("GetFireblockFeeByDate can't get data: {ex}",e.Message);
+                throw;
+            }
+        }
         
     }
 }

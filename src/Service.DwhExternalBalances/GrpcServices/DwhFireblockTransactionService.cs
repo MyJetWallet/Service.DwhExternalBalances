@@ -44,5 +44,15 @@ namespace Service.DwhExternalBalances.GrpcServices
                 FireblockTransaction = result
             };
         }
+
+        public async Task<GetFireblockFeeResponse> GetFeeByDayAsync(GetByDateRequest request)
+        {
+            var result = await _repositories.GetFireblockFeeByDate(request.DateFrom, request.DateTo);
+
+            return new GetFireblockFeeResponse()
+            {
+                FeeFireblock = result
+            };
+        }
     }
 }

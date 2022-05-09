@@ -17,4 +17,7 @@ public interface IDwhFireblockTransactionsService
     
     [OperationContract]
     Task<GetFireblokTransactionsResponse> GetTransactionToFireblockAsync(GetByDateRequest request);
+
+    [OperationContract]
+    Task<GetFireblockFeeResponse> GetFeeByDayAsync(GetByDateRequest request);
 }
