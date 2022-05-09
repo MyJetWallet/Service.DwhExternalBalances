@@ -36,7 +36,6 @@ namespace Service.DwhExternalBalances.DataBase
         public DbSet<MarketReference> MarketReferences { get; set; }
         public DbSet<IndexPricesEntity> IndexPrices { get; set; }
         public DbSet<IndexPrice> IndexPricesShanpshot { get; set; }
-        
         public DbSet<GasStationBalance> GasStationBalances { get; set; }
 
         public DwhContext(DbContextOptions options) : base(options)

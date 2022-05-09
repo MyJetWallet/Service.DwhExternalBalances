@@ -8,6 +8,7 @@ using Service.AssetsDictionary.Client.Grpc;
 using Service.AssetsDictionary.Grpc;
 using Service.DwhExternalBalances.DataBase;
 using Service.DwhExternalBalances.Engines;
+using Service.DwhExternalBalances.GrpcServices;
 using Service.DwhExternalBalances.Jobs;
 using Service.Fireblocks.Api.Client;
 using Service.Fireblocks.Webhook.Client;
@@ -53,6 +54,7 @@ namespace Service.DwhExternalBalances.Modules
 
             builder.RegisterType<AssetsUsdPricesEngine>().AsSelf().SingleInstance();
             builder.RegisterType<GasStationBalanceJob>().As<IStartable>().AutoActivate().SingleInstance();
+            builder.RegisterType<FireblockTransactionsDwhRepositories>().AsSelf().SingleInstance();
 
         }
     }

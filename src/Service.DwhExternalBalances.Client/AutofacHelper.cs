@@ -12,6 +12,9 @@ namespace Service.DwhExternalBalances.Client
             var factory = new DwhExternalBalancesClientFactory(grpcServiceUrl);
 
             builder.RegisterInstance(factory.GetDwhExternalBalancesService()).As<IDwhExternalBalancesService>().SingleInstance();
+
+            builder.RegisterInstance(factory.GetDwhFireblockTransactionsService())
+                .As<IDwhFireblockTransactionsService>().SingleInstance();
         }
     }
 }

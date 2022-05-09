@@ -12,5 +12,8 @@ namespace Service.DwhExternalBalances.Client
         }
 
         public IDwhExternalBalancesService GetDwhExternalBalancesService() => CreateGrpcService<IDwhExternalBalancesService>();
+
+        public IDwhFireblockTransactionsService GetDwhFireblockTransactionsService() =>
+            CreateGrpcService<IDwhFireblockTransactionsService>();
     }
 }

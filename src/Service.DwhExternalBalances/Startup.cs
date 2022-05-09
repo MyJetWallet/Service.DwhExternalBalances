@@ -57,6 +57,7 @@ namespace Service.DwhExternalBalances
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcSchema<DwhExternalBalancesesService, IDwhExternalBalancesService>();
+                endpoints.MapGrpcSchema<DwhFireblockTransactionService, IDwhFireblockTransactionsService>();
 
                 endpoints.MapGrpcSchemaRegistry();
 
