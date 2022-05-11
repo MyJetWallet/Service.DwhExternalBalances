@@ -12,21 +12,22 @@ namespace Service.DwhExternalBalances.GrpcServices
 {
     public class FireblockTransactionsDwhRepositories
     {
-        private readonly DbContextOptionsBuilder<DwhContext> _dwhContextOptionsBuilder;
         private readonly ILogger<FireblockTransactionsDwhRepositories> _logger;
+        private readonly IDwhDbContextFactory _dwhDbContextFactory;
 
-        public FireblockTransactionsDwhRepositories(DbContextOptionsBuilder<DwhContext> dwhContextOptionsBuilder,
-            ILogger<FireblockTransactionsDwhRepositories> logger)
+        public FireblockTransactionsDwhRepositories(
+            ILogger<FireblockTransactionsDwhRepositories> logger, 
+            IDwhDbContextFactory dwhDbContextFactory)
         {
-            _dwhContextOptionsBuilder = dwhContextOptionsBuilder;
             _logger = logger;
+            _dwhDbContextFactory = dwhDbContextFactory;
         }
 
         public async Task<List<FireblockTransaction>> GetTransactionWithinFireblockAsync(DateTime from, DateTime to)
         {
             try
             {
-                await using var ctx = new DwhContext(_dwhContextOptionsBuilder.Options);
+                await using var ctx = _dwhDbContextFactory.Create();
                 var query =
                     $@"SELECT [TxHash]
                           ,[FireblocksAssetId]
@@ -53,7 +54,7 @@ namespace Service.DwhExternalBalances.GrpcServices
                           ,[FeeAssetIndexPrice]
                     	  ,[Fee] * [FeeAssetIndexPrice] as FeeUsd
                     FROM [report].[TransactionWithinFireblocks]
-                    WHERE [UpdatedDate] >= @From and [UpdatedDate] < @To ";
+                    WHERE [UpdatedDate] >= @From and [UpdatedDate] < @To";
 
                 var response = await ctx.Database.GetDbConnection()
                     .QueryAsync<FireblockTransaction>(query, new
@@ -77,7 +78,7 @@ namespace Service.DwhExternalBalances.GrpcServices
         {
             try
             {
-                await using var ctx = new DwhContext(_dwhContextOptionsBuilder.Options);
+                await using var ctx = _dwhDbContextFactory.Create();
                 var query =
                     $@"SELECT [TxHash]
                             ,[FireblocksAssetId]
@@ -128,7 +129,7 @@ namespace Service.DwhExternalBalances.GrpcServices
         {
             try
             {
-                await using var ctx = new DwhContext(_dwhContextOptionsBuilder.Options);
+                await using var ctx = _dwhDbContextFactory.Create();
                 var query =
                     $@"SELECT [TxHash]
                             ,[FireblocksAssetId]
@@ -179,7 +180,7 @@ namespace Service.DwhExternalBalances.GrpcServices
         {
             try
             {
-                await using var ctx = new DbContext(_dwhContextOptionsBuilder.Options);
+                await using var ctx = _dwhDbContextFactory.Create();
                 var query = $@"select isnull(sum(FeeToFireblock),0), 
                 isnull(sum(FeeOutSideFireblock),0),
                 isnull(sum(FeeInFireblock),0)
