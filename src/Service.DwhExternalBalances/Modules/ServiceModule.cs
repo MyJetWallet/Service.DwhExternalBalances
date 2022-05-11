@@ -21,7 +21,7 @@ namespace Service.DwhExternalBalances.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            var noSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
+            var noSqlClient = builder.CreateNoSqlClientOld(Program.ReloadedSettings(model =>model.MyNoSqlReaderHostPort ));
             var assetDictionaryFactory = new AssetsDictionaryClientFactory(Program.Settings.AssetDictionaryGrpcServiceUrl);
 
             builder.RegisterType<DwhDbContextFactory>().As<IDwhDbContextFactory>().SingleInstance();
