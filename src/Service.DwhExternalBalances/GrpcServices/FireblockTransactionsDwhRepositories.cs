@@ -181,9 +181,10 @@ namespace Service.DwhExternalBalances.GrpcServices
             try
             {
                 await using var ctx = _dwhDbContextFactory.Create();
-                var query = $@"select isnull(sum(FeeToFireblock),0), 
-                isnull(sum(FeeOutSideFireblock),0),
-                isnull(sum(FeeInFireblock),0)
+                
+                var query = $@"select isnull(sum(FeeToFireblock),0) as FeeToFireblock, 
+                isnull(sum(FeeOutSideFireblock),0) as FeeOutSideFireblock,
+                isnull(sum(FeeInFireblock),0) as FeeInFireblock
                 from service.fireblockfee
                 where updateddate >= @From and updateddate < @To";
 
