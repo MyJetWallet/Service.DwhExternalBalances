@@ -57,14 +57,17 @@ namespace Service.DwhExternalBalances.Jobs
                     {
                         ExchangeName = ex
                     });
-                    
-                    allBalances.AddRange(balance.Balances.Select(e=> new ExternalBalance()
-                        {
-                            Asset = e.Symbol,
-                            Type = ex,
-                            Volume = e.Balance
-                        }
-                    ));
+
+                    if (balance != null)
+                    {
+                        allBalances.AddRange(balance.Balances.Select(e => new ExternalBalance()
+                            {
+                                Asset = e.Symbol,
+                                Type = ex,
+                                Volume = e.Balance
+                            }
+                        ));
+                    }
                 }
                 
                 await using var ctx = _dwhDbContextFactory.Create();
