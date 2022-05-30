@@ -28,6 +28,9 @@
     <PackageReference Include="MyJetWallet.Service.AssetsDictionary.Client" Version="2.9.0" />
     <PackageReference Include="MyJetWallet.Service.Fireblocks.Api.Client" Version="1.4.4" />
     <PackageReference Include="MyJetWallet.Service.Fireblocks.Webhook.Client" Version="1.5.2" />
+    <PackageReference Include="MyNoSqlServer.Abstractions" Version="1.2.6" />
+    <PackageReference Include="MyNoSqlServer.DataReader" Version="1.8.1" />
+    <PackageReference Include="MyNoSqlServer.DataWriter" Version="1.8.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="6.0.0" />
     <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />
