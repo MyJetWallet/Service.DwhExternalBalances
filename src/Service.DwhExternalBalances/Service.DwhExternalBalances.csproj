@@ -23,14 +23,14 @@
     <PackageReference Include="MyJetWallet.Domain.ExternalMarketApi" Version="1.4.4" />
     <PackageReference Include="MyJetWallet.Sdk.GrpcMetrics" Version="2.0.4" />
     <PackageReference Include="MyJetWallet.Sdk.GrpcSchema" Version="1.0.6" />
-    <PackageReference Include="MyJetWallet.Sdk.NoSql" Version="2.2.4" />
+    <PackageReference Include="MyJetWallet.Sdk.NoSql" Version="2.2.5" />
     <PackageReference Include="MyJetWallet.Sdk.Service" Version="2.2.4" />
     <PackageReference Include="MyJetWallet.Service.AssetsDictionary.Client" Version="2.9.2" />
     <PackageReference Include="MyJetWallet.Service.Fireblocks.Api.Client" Version="1.4.4" />
     <PackageReference Include="MyJetWallet.Service.Fireblocks.Webhook.Client" Version="1.5.2" />
     <PackageReference Include="MyNoSqlServer.Abstractions" Version="1.2.6" />
-    <PackageReference Include="MyNoSqlServer.DataReader" Version="1.8.3" />
-    <PackageReference Include="MyNoSqlServer.DataWriter" Version="1.8.3" />
+    <PackageReference Include="MyNoSqlServer.DataReader" Version="1.8.4" />
+    <PackageReference Include="MyNoSqlServer.DataWriter" Version="1.8.4" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="6.0.0" />
     <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />
