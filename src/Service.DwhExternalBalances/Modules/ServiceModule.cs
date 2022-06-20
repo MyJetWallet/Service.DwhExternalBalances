@@ -50,16 +50,16 @@ namespace Service.DwhExternalBalances.Modules
             builder.RegisterCircleBusinessAccountClient(Program.Settings.CircleSignerGrpcServiceUrl);
 
             builder.RegisterType<DictionariesJob>().AsSelf().SingleInstance();
-            //builder.RegisterType<AssetsUsdPricesEngine>().AsSelf().SingleInstance();
-            //builder.RegisterType<GasStationBalanceJob>().As<IStartable>().AutoActivate().SingleInstance();
+            builder.RegisterType<AssetsUsdPricesEngine>().AsSelf().SingleInstance();
+            builder.RegisterType<GasStationBalanceJob>().As<IStartable>().AutoActivate().SingleInstance();
             builder.RegisterType<CircleJob>().As<IStartable>().AutoActivate().SingleInstance();
-            //builder.RegisterType<FireblockTransactionsDwhRepositories>().AsSelf().SingleInstance();
-            //builder.RegisterType<MarketPriceEngine>().AsSelf().SingleInstance();
-            //builder.RegisterType<ConvertPriceEngine>().AsSelf().SingleInstance();
-            //builder.RegisterType<ExchangeBalanceJob>().As<IStartable>().AutoActivate().SingleInstance();
-            //builder.RegisterType<IndexPriceJob>().As<IStartable>().AutoActivate().SingleInstance();
-            //builder.RegisterType<FireBlockJob>().As<IStartable>().AutoActivate().SingleInstance();
-            //builder.RegisterType<FeeFireBlockJob>().As<IStartable>().AutoActivate().SingleInstance();
+            builder.RegisterType<FireblockTransactionsDwhRepositories>().AsSelf().SingleInstance();
+            builder.RegisterType<MarketPriceEngine>().AsSelf().SingleInstance();
+            builder.RegisterType<ConvertPriceEngine>().AsSelf().SingleInstance();
+            builder.RegisterType<ExchangeBalanceJob>().As<IStartable>().AutoActivate().SingleInstance();
+            builder.RegisterType<IndexPriceJob>().As<IStartable>().AutoActivate().SingleInstance();
+            builder.RegisterType<FireBlockJob>().As<IStartable>().AutoActivate().SingleInstance();
+            builder.RegisterType<FeeFireBlockJob>().As<IStartable>().AutoActivate().SingleInstance();
 
         }
     }
