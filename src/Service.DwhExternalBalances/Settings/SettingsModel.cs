@@ -28,5 +28,8 @@ namespace Service.DwhExternalBalances.Settings
         
         [YamlProperty("DwhExternalBalances.AssetDictionaryGrpcServiceUrl")]
         public string AssetDictionaryGrpcServiceUrl { get; set; }
+
+        [YamlProperty("DwhExternalBalances.CircleSignerGrpcServiceUrl")]
+        public string CircleSignerGrpcServiceUrl { get; set; }
     }
 }
