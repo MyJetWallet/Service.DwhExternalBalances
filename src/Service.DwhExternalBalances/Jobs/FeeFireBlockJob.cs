@@ -49,18 +49,7 @@ namespace Service.DwhExternalBalances.Jobs
             var currentUnixTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var lastTsFromDatabase = await GetLastTimeFromDb();
             
-            //todo: remove after finish all tests
-            {
-                lastTsFromDatabase = 0;
-                _logger.LogWarning("GetTransaction fireblocks reset last time to 0");
-            }
-
             var transactionPrev = new List<string>();
-
-            {
-                await using var ctx = _dwhDbContextFactory.Create();
-                await ctx.Database.ExecuteSqlRawAsync($"delete from data.TransactionFireBlocks where UpdatedDateUnix >= {lastTsFromDatabase}");
-            }
             
             try
             {
