@@ -109,9 +109,7 @@ namespace Service.DwhExternalBalances.Jobs
                         break;
                     
                     await using var ctx = _dwhDbContextFactory.Create();
-                    //await ctx.UpsertFeeTransferFireBlocks(listToUpdate);
-                    ctx.TransactionHistories.AddRange(listToUpdate);
-                    await ctx.SaveChangesAsync();
+                    await ctx.UpdateFireblockTransactions(listToUpdate);
                     _logger.LogInformation("Fireblock transaction saved {count}, from {unixTime}", listToUpdate.Count, currentUnixTime);
 
                     currentUnixTime = transaction.History.Min(e => e.UpdatedDateUnix);

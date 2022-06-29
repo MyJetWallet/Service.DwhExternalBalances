@@ -190,5 +190,12 @@ namespace Service.DwhExternalBalances.DataBase
                 .On(e => e.FireblocksAssetId)
                 .RunAsync();
         }
+
+        public async Task UpdateFireblockTransactions(IEnumerable<TransactionHistoryEntity> fireblock)
+        {
+            await TransactionHistories.UpsertRange(fireblock)
+                .On(e => e.Id)
+                .RunAsync();
+        }
     }
 }
