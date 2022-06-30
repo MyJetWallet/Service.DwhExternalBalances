@@ -23,24 +23,22 @@ namespace Service.DwhExternalBalances.Jobs
         private readonly ILogger<ExchangeBalanceJob> _logger;
         private readonly IExternalMarket _externalMarket;
         private readonly IDwhDbContextFactory _dwhDbContextFactory;
-        
-        private readonly List<string> Exchange = new List<string>(){"Binance", "FTX"};
-
+        private readonly List<string> _exchanges = new List<string> {"Binance", "FTX"};
 
         public ExchangeBalanceJob(
             ILogger<ExchangeBalanceJob> logger,
             IExternalMarket externalMarket,
-            IDwhDbContextFactory dwhDbContextFactory)
+            IDwhDbContextFactory dwhDbContextFactory
+        )
         {
             _logger = logger;
             _externalMarket = externalMarket;
             _dwhDbContextFactory = dwhDbContextFactory;
-            
+
             _timer = new MyTaskTimer(nameof(ExchangeBalanceJob),
                 TimeSpan.FromSeconds(23), _logger, DoTime);
         }
-        
-        
+
         private async Task DoTime()
         {
             await PersistExternalBalances();
@@ -51,35 +49,47 @@ namespace Service.DwhExternalBalances.Jobs
             try
             {
                 var allBalances = new List<ExternalBalance>();
-                foreach (var ex in Exchange)
-                {
-                    var balance = await _externalMarket.GetBalancesAsync(new GetBalancesRequest()
-                    {
-                        ExchangeName = ex
-                    });
 
-                    if (balance != null)
+                foreach (var name in _exchanges)
+                {
+                    try
                     {
-                        allBalances.AddRange(balance.Balances.Select(e => new ExternalBalance()
-                            {
-                                Asset = e.Symbol,
-                                Type = ex,
-                                Volume = e.Balance
-                            }
-                        ));
+                        var response = await _externalMarket.GetBalancesAsync(new GetBalancesRequest()
+                        {
+                            ExchangeName = name
+                        });
+
+                        if (response is {Balances: { }} && response.Balances.Any())
+                        {
+                            allBalances.AddRange(response.Balances.Select(e => new ExternalBalance
+                                {
+                                    Asset = e.Symbol,
+                                    Type = name,
+                                    Volume = e.Balance
+                                }
+                            ));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Can't persist external balances. Failed to get balances from api");
                     }
                 }
-                
-                await using var ctx = _dwhDbContextFactory.Create();
-                await ctx.UpsertExternalBalances(allBalances);
-                _logger.LogInformation("PersistExternalBalances saved {balanceCount} balances.", 
-                    allBalances.Count);
+
+                if (allBalances.Any())
+                {
+                    await using var ctx = _dwhDbContextFactory.Create();
+                    await ctx.UpsertExternalBalances(allBalances);
+                    _logger.LogInformation("PersistExternalBalances saved {balanceCount} balances.",
+                        allBalances.Count);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, "Failed to PersistExternalBalances. {ExMess}", ex.Message);
             }
         }
+
         public void Start()
         {
             _timer.Start();
