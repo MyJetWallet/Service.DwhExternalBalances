@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.Service.Tools;
@@ -62,6 +63,10 @@ namespace Service.DwhExternalBalances.Jobs
                 await tr.CommitAsync();
                 _logger.LogInformation("Fireblock saved {balanceCount} balances.", 
                     fireblockBalance.Count);
+            }
+            catch (SqlException e)
+            {
+                _logger.LogWarning(e, e.Message);
             }
             catch (Exception ex)
             {

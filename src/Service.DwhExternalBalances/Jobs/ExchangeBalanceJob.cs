@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using DotNetCoreDecorators;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Domain.ExternalMarketApi;
 using MyJetWallet.Domain.ExternalMarketApi.Dto;
@@ -36,7 +37,7 @@ namespace Service.DwhExternalBalances.Jobs
             _dwhDbContextFactory = dwhDbContextFactory;
 
             _timer = new MyTaskTimer(nameof(ExchangeBalanceJob),
-                TimeSpan.FromSeconds(23), _logger, DoTime);
+                TimeSpan.FromSeconds(60), _logger, DoTime);
         }
 
         private async Task DoTime()
@@ -59,7 +60,7 @@ namespace Service.DwhExternalBalances.Jobs
                             ExchangeName = name
                         });
 
-                        if (response is {Balances: { }} && response.Balances.Any())
+                        if (response is { Balances: { } } && response.Balances.Any())
                         {
                             allBalances.AddRange(response.Balances.Select(e => new ExternalBalance
                                 {
@@ -83,6 +84,10 @@ namespace Service.DwhExternalBalances.Jobs
                     _logger.LogInformation("PersistExternalBalances saved {balanceCount} balances.",
                         allBalances.Count);
                 }
+            }
+            catch (SqlException e)
+            {
+                _logger.LogWarning(e, e.Message);
             }
             catch (Exception ex)
             {
