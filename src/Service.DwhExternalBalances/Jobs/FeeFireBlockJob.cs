@@ -16,6 +16,7 @@ using Service.Fireblocks.Api.Grpc.Models.SupportedAssets;
 using Service.Fireblocks.Api.Grpc.Models.TransactionHistory;
 using Service.IndexPrices.Client;
 
+
 namespace Service.DwhExternalBalances.Jobs
 {
     public class FeeFireBlockJob : IStartable
@@ -76,7 +77,7 @@ namespace Service.DwhExternalBalances.Jobs
                     foreach (var item in transaction.History)
                     {
                         if (!transactionPrev.Contains((item.Id))
-                            && item.UpdatedDateUnix >= lastTsFromDatabase)
+                            && item.UpdatedDateUnix > lastTsFromDatabase)
                         {
                             
                             listToUpdate.Add(new TransactionHistoryEntity()
@@ -107,12 +108,32 @@ namespace Service.DwhExternalBalances.Jobs
                     
                     if (!listToUpdate.Any())
                         break;
-                    
+
                     await using var ctx = _dwhDbContextFactory.Create();
-                    await ctx.UpdateFireblockTransactions(listToUpdate);
+                    
+                    foreach (var item in listToUpdate)
+                    {
+                        var id = await ctx.TransactionHistories.Where(x => x.Id == item.Id)
+                            .Select(x => x.Id)
+                            .SingleOrDefaultAsync();
+                        if (id != null)
+                        {
+                            ctx.Update(item);
+                            await ctx.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            await ctx.AddAsync(item);
+                            await ctx.SaveChangesAsync();
+                        }
+                    }
+
+                    //await ctx.AddRangeAsync(listToUpdate);
+                    //await ctx.SaveChangesAsync();
                     _logger.LogInformation("Fireblock transaction saved {count}, from {unixTime}", listToUpdate.Count, currentUnixTime);
 
                     currentUnixTime = transaction.History.Min(e => e.UpdatedDateUnix);
+                    
                 } while (currentUnixTime > lastTsFromDatabase);
 
             }
