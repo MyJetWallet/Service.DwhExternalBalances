@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Domain.ExternalMarketApi.Models;
 using MyJetWallet.Fireblocks.Domain.Models.TransactionHistories;
 using Service.AssetsDictionary.Domain.Models;
 using Service.DwhExternalBalances.DataBase.Models;
@@ -196,6 +197,15 @@ namespace Service.DwhExternalBalances.DataBase
             await TransactionHistories.UpsertRange(fireblock)
                 .On(e => e.Id)
                 .RunAsync();
+        }
+        
+        public Task<ICollection<ExternalBalance>> GetBalancesAsync()
+        {
+            var items = ExternalBalances
+                .Take(5000)
+                .ToList();
+
+            return Task.FromResult<ICollection<ExternalBalance>>(items);
         }
     }
 }

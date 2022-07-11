@@ -50,25 +50,50 @@ namespace Service.DwhExternalBalances.Jobs
             try
             {
                 var allBalances = new List<ExternalBalance>();
+                ICollection<ExternalBalance> savedBalances = new List<ExternalBalance>();
+                
+                await using (var ctx = _dwhDbContextFactory.Create())
+                {
+                    savedBalances = await ctx.GetBalancesAsync();
+                }
 
-                foreach (var name in _exchanges)
+                foreach (var exchangeName in _exchanges)
                 {
                     try
                     {
-                        var response = await _externalMarket.GetBalancesAsync(new GetBalancesRequest()
+                        var response = await _externalMarket.GetBalancesAsync(new GetBalancesRequest
                         {
-                            ExchangeName = name
+                            ExchangeName = exchangeName
                         });
 
-                        if (response is { Balances: { } } && response.Balances.Any())
+                        if (response?.Balances == null || !response.Balances.Any())
                         {
-                            allBalances.AddRange(response.Balances.Select(e => new ExternalBalance
-                                {
-                                    Asset = e.Symbol,
-                                    Type = name,
-                                    Volume = e.Balance
-                                }
-                            ));
+                            continue;
+                        }
+
+                        allBalances.AddRange(response.Balances.Select(e => new ExternalBalance
+                            {
+                                Asset = e.Symbol,
+                                Type = exchangeName,
+                                Volume = e.Balance
+                            }
+                        ));
+
+                        var exchangeSavedBalances = savedBalances.Where(b => b.Type == exchangeName);
+
+                        foreach (var exchangeSavedBalance in exchangeSavedBalances)
+                        {
+                            if (response.Balances.Any(b => b.Symbol == exchangeSavedBalance.Asset))
+                            {
+                                continue;
+                            }
+                            
+                            allBalances.Add(new ExternalBalance
+                            {
+                                Asset = exchangeSavedBalance.Asset,
+                                Type = exchangeName,
+                                Volume = 0
+                            });
                         }
                     }
                     catch (Exception ex)
