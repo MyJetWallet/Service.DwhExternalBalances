@@ -70,7 +70,19 @@ namespace Service.DwhExternalBalances.Jobs
                         {
                             continue;
                         }
+                        
+                        var newBalanceAssets = response.Balances
+                            .Select(b => b.Symbol)
+                            .ToHashSet();
+                        var zeroBalances = savedBalances
+                            .Where(b => b.Type == exchangeName && !newBalanceAssets.Contains(b.Asset));
 
+                        allBalances.AddRange(zeroBalances.Select(exchangeSavedBalance => new ExternalBalance
+                        {
+                            Asset = exchangeSavedBalance.Asset,
+                            Type = exchangeName,
+                            Volume = 0
+                        }));
                         allBalances.AddRange(response.Balances.Select(e => new ExternalBalance
                             {
                                 Asset = e.Symbol,
@@ -78,23 +90,6 @@ namespace Service.DwhExternalBalances.Jobs
                                 Volume = e.Balance
                             }
                         ));
-
-                        var exchangeSavedBalances = savedBalances.Where(b => b.Type == exchangeName);
-
-                        foreach (var exchangeSavedBalance in exchangeSavedBalances)
-                        {
-                            if (response.Balances.Any(b => b.Symbol == exchangeSavedBalance.Asset))
-                            {
-                                continue;
-                            }
-                            
-                            allBalances.Add(new ExternalBalance
-                            {
-                                Asset = exchangeSavedBalance.Asset,
-                                Type = exchangeName,
-                                Volume = 0
-                            });
-                        }
                     }
                     catch (Exception ex)
                     {
