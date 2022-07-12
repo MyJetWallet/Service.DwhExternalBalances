@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -68,16 +69,23 @@ namespace Service.DwhExternalBalances.Jobs
                     circleBalances.Add(externalBalance);
                 }
 
-                await using var ctx = _dwhDbContextFactory.Create();
-                await using var tr = ctx.Database.BeginTransaction();
-                await ctx.Database.ExecuteSqlRawAsync("DELETE FROM data.AllExternalBalances WHERE Type = 'Circle'");
+                try
+                {
+                    await using var ctx = _dwhDbContextFactory.Create();
+                    await using var tr = ctx.Database.BeginTransaction(IsolationLevel.ReadUncommitted);
+                    await ctx.Database.ExecuteSqlRawAsync("DELETE FROM data.AllExternalBalances WHERE Type = 'Circle'");
 
-                if (circleBalances.Any())
-                    await ctx.UpsertExternalBalances(circleBalances);
+                    if (circleBalances.Any())
+                        await ctx.UpsertExternalBalances(circleBalances);
 
-                await tr.CommitAsync();
-                _logger.LogInformation("Circle saved {balanceCount} balances.",
-                    circleBalances.Count);
+                    await tr.CommitAsync();
+                    _logger.LogInformation("Circle saved {balanceCount} balances.",
+                        circleBalances.Count);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning(e, e.Message);
+                }
             }
             catch (Exception ex)
             {

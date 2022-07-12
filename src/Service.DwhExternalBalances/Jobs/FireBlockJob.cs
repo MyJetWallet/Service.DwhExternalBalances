@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -55,18 +56,22 @@ namespace Service.DwhExternalBalances.Jobs
                     AssetNetwork = e.AssetNetwork,
                     Volume = e.VaultAsset.Available
                 }));
-                
-                await using var ctx = _dwhDbContextFactory.Create();
-                await using var tr = ctx.Database.BeginTransaction();
-                await ctx.Database.ExecuteSqlRawAsync("DELETE FROM data.AllExternalBalances WHERE Type = 'Fireblocks'");
-                await ctx.UpsertExternalBalances(fireblockBalance);
-                await tr.CommitAsync();
-                _logger.LogInformation("Fireblock saved {balanceCount} balances.", 
-                    fireblockBalance.Count);
-            }
-            catch (SqlException e)
-            {
-                _logger.LogWarning(e, e.Message);
+
+                try
+                {
+                    await using var ctx = _dwhDbContextFactory.Create();
+                    await using var tr = ctx.Database.BeginTransaction(IsolationLevel.ReadUncommitted);
+                    await ctx.Database.ExecuteSqlRawAsync(
+                        "DELETE FROM data.AllExternalBalances WHERE Type = 'Fireblocks'");
+                    await ctx.UpsertExternalBalances(fireblockBalance);
+                    await tr.CommitAsync();
+                    _logger.LogInformation("Fireblock saved {balanceCount} balances.",
+                        fireblockBalance.Count);
+                }
+                catch (SqlException e)
+                {
+                    _logger.LogWarning(e, e.Message);
+                }
             }
             catch (Exception ex)
             {

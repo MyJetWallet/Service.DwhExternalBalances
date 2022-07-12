@@ -99,15 +99,18 @@ namespace Service.DwhExternalBalances.Jobs
 
                 if (allBalances.Any())
                 {
-                    await using var ctx = _dwhDbContextFactory.Create();
-                    await ctx.UpsertExternalBalances(allBalances);
-                    _logger.LogInformation("PersistExternalBalances saved {balanceCount} balances.",
-                        allBalances.Count);
+                    try
+                    {
+                        await using var ctx = _dwhDbContextFactory.Create();
+                        await ctx.UpsertExternalBalances(allBalances);
+                        _logger.LogInformation("PersistExternalBalances saved {balanceCount} balances.",
+                            allBalances.Count);
+                    }
+                    catch (SqlException e)
+                    {
+                        _logger.LogWarning(e, e.Message);
+                    }
                 }
-            }
-            catch (SqlException e)
-            {
-                _logger.LogWarning(e, e.Message);
             }
             catch (Exception ex)
             {
