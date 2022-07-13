@@ -47,11 +47,13 @@ namespace Service.DwhExternalBalances.Jobs
                 var circle = await _circleBusinessAccountService.GetBalances();
 
                 var circleBalances = new List<ExternalBalance>();
-                var groupping = circle.Data.Available.GroupBy(x => x.Currency);
+                var allAmounts = circle.Data.Available.Union(circle.Data.Unsettled);
+                var amountsByCurrency = allAmounts
+                    .GroupBy(x => x.Currency);
 
-                foreach (var group in groupping)
+                foreach (var group in amountsByCurrency)
                 {
-                    var externalBalance = new ExternalBalance()
+                    var externalBalance = new ExternalBalance
                     {
                         Asset = group.Key,
                         AssetNetwork = "Circle",
