@@ -8,14 +8,14 @@
 
     <ItemGroup>
       <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="6.0.1" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.6" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.6">
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.7" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.7">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.6" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.7" />
       <PackageReference Include="MyJetWallet.Domain.ExternalMarketApi" Version="1.4.4" />
-      <PackageReference Include="MyJetWallet.Sdk.NoSql" Version="2.2.8" />
+      <PackageReference Include="MyJetWallet.Sdk.NoSql" Version="2.2.11" />
       <PackageReference Include="MyJetWallet.Service.AssetsDictionary.Client" Version="2.11.2" />
       <PackageReference Include="MyJetWallet.Service.Fireblocks.Api.Client" Version="1.4.4" />
       <PackageReference Include="MyJetWallet.Service.Fireblocks.Webhook.Client" Version="1.7.0" />
