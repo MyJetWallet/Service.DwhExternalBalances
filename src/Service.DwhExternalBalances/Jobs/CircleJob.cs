@@ -46,47 +46,52 @@ namespace Service.DwhExternalBalances.Jobs
             {
                 var circle = await _circleBusinessAccountService.GetBalances();
 
-                var circleBalances = new List<ExternalBalance>();
-                var allAmounts = circle.Data.Available.Union(circle.Data.Unsettled);
-                var amountsByCurrency = allAmounts
-                    .GroupBy(x => x.Currency);
-
-                foreach (var group in amountsByCurrency)
+                if (circle.Data != null)
                 {
-                    var externalBalance = new ExternalBalance
-                    {
-                        Asset = group.Key,
-                        AssetNetwork = "Circle",
-                        Name = "BusinessAccount: " + group.Key,
-                        Type = "Circle",
-                        Volume = 0m,
-                    };
 
-                    foreach (var item in group)
+                    var circleBalances = new List<ExternalBalance>();
+                    var allAmounts = circle.Data.Available.Union(circle.Data.Unsettled);
+                    var amountsByCurrency = allAmounts
+                        .GroupBy(x => x.Currency);
+
+                    foreach (var group in amountsByCurrency)
                     {
-                        decimal.TryParse(item.Amount, out var res);
-                        externalBalance.Volume += res;
+                        var externalBalance = new ExternalBalance
+                        {
+                            Asset = group.Key,
+                            AssetNetwork = "Circle",
+                            Name = "BusinessAccount: " + group.Key,
+                            Type = "Circle",
+                            Volume = 0m,
+                        };
+
+                        foreach (var item in group)
+                        {
+                            decimal.TryParse(item.Amount, out var res);
+                            externalBalance.Volume += res;
+                        }
+
+                        circleBalances.Add(externalBalance);
                     }
 
-                    circleBalances.Add(externalBalance);
-                }
+                    try
+                    {
+                        await using var ctx = _dwhDbContextFactory.Create();
+                        await using var tr = ctx.Database.BeginTransaction(IsolationLevel.ReadUncommitted);
+                        await ctx.Database.ExecuteSqlRawAsync(
+                            "DELETE FROM data.AllExternalBalances WHERE Type = 'Circle'");
 
-                try
-                {
-                    await using var ctx = _dwhDbContextFactory.Create();
-                    await using var tr = ctx.Database.BeginTransaction(IsolationLevel.ReadUncommitted);
-                    await ctx.Database.ExecuteSqlRawAsync("DELETE FROM data.AllExternalBalances WHERE Type = 'Circle'");
+                        if (circleBalances.Any())
+                            await ctx.UpsertExternalBalances(circleBalances);
 
-                    if (circleBalances.Any())
-                        await ctx.UpsertExternalBalances(circleBalances);
-
-                    await tr.CommitAsync();
-                    _logger.LogInformation("Circle saved {balanceCount} balances.",
-                        circleBalances.Count);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogWarning(e, e.Message);
+                        await tr.CommitAsync();
+                        _logger.LogInformation("Circle saved {balanceCount} balances.",
+                            circleBalances.Count);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, e.Message);
+                    }
                 }
             }
             catch (Exception ex)
