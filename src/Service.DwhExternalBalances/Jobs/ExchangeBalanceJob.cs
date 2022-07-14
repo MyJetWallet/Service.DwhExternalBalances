@@ -24,7 +24,7 @@ namespace Service.DwhExternalBalances.Jobs
         private readonly ILogger<ExchangeBalanceJob> _logger;
         private readonly IExternalMarket _externalMarket;
         private readonly IDwhDbContextFactory _dwhDbContextFactory;
-        private readonly List<string> _exchanges = new List<string> {"Binance", "FTX", "OKX", "OKX-Earn"};
+        private readonly List<string> _exchanges = new List<string> {"Binance", "FTX", "OKX" };
 
         public ExchangeBalanceJob(
             ILogger<ExchangeBalanceJob> logger,

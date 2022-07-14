@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Circle.Models.Payouts;
 using MyJetWallet.Sdk.Service.Tools;
 using MyNoSqlServer.Abstractions;
 using Service.Blockchain.Wallets.MyNoSql.Addresses;
@@ -46,52 +47,55 @@ namespace Service.DwhExternalBalances.Jobs
             {
                 var circle = await _circleBusinessAccountService.GetBalances();
 
-                if (circle.Data != null)
+                if (circle.Data == null)
                 {
+                    return;
+                }
 
-                    var circleBalances = new List<ExternalBalance>();
-                    var allAmounts = circle.Data.Available.Union(circle.Data.Unsettled);
-                    var amountsByCurrency = allAmounts
-                        .GroupBy(x => x.Currency);
+                var available = circle.Data.Available ?? Array.Empty<CircleAmount>();
+                var unsettled = circle.Data.Unsettled ?? Array.Empty<CircleAmount>();
+                var circleBalances = new List<ExternalBalance>();
+                var allAmounts = available.Union(unsettled);
+                var amountsByCurrency = allAmounts
+                    .GroupBy(x => x.Currency);
 
-                    foreach (var group in amountsByCurrency)
+                foreach (var group in amountsByCurrency)
+                {
+                    var externalBalance = new ExternalBalance
                     {
-                        var externalBalance = new ExternalBalance
-                        {
-                            Asset = group.Key,
-                            AssetNetwork = "Circle",
-                            Name = "BusinessAccount: " + group.Key,
-                            Type = "Circle",
-                            Volume = 0m,
-                        };
+                        Asset = group.Key,
+                        AssetNetwork = "Circle",
+                        Name = "BusinessAccount: " + group.Key,
+                        Type = "Circle",
+                        Volume = 0m,
+                    };
 
-                        foreach (var item in group)
-                        {
-                            decimal.TryParse(item.Amount, out var res);
-                            externalBalance.Volume += res;
-                        }
-
-                        circleBalances.Add(externalBalance);
+                    foreach (var item in group)
+                    {
+                        decimal.TryParse(item.Amount, out var res);
+                        externalBalance.Volume += res;
                     }
 
-                    try
-                    {
-                        await using var ctx = _dwhDbContextFactory.Create();
-                        await using var tr = ctx.Database.BeginTransaction(IsolationLevel.ReadUncommitted);
-                        await ctx.Database.ExecuteSqlRawAsync(
-                            "DELETE FROM data.AllExternalBalances WHERE Type = 'Circle'");
+                    circleBalances.Add(externalBalance);
+                }
 
-                        if (circleBalances.Any())
-                            await ctx.UpsertExternalBalances(circleBalances);
+                try
+                {
+                    await using var ctx = _dwhDbContextFactory.Create();
+                    await using var tr = ctx.Database.BeginTransaction(IsolationLevel.ReadUncommitted);
+                    await ctx.Database.ExecuteSqlRawAsync(
+                        "DELETE FROM data.AllExternalBalances WHERE Type = 'Circle'");
 
-                        await tr.CommitAsync();
-                        _logger.LogInformation("Circle saved {balanceCount} balances.",
-                            circleBalances.Count);
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogWarning(e, e.Message);
-                    }
+                    if (circleBalances.Any())
+                        await ctx.UpsertExternalBalances(circleBalances);
+
+                    await tr.CommitAsync();
+                    _logger.LogInformation("Circle saved {balanceCount} balances.",
+                        circleBalances.Count);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning(e, e.Message);
                 }
             }
             catch (Exception ex)
