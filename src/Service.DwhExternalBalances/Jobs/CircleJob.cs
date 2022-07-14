@@ -20,13 +20,14 @@ namespace Service.DwhExternalBalances.Jobs
     {
         private readonly IDwhDbContextFactory _dwhDbContextFactory;
         private readonly ICircleBusinessAccountService _circleBusinessAccountService;
-        private readonly ILogger<FireBlockJob> _logger;
+        private readonly ILogger<CircleJob> _logger;
         private readonly MyTaskTimer _timer;
 
         public CircleJob(
             IDwhDbContextFactory dwhDbContextFactory,
             ICircleBusinessAccountService circleBusinessAccountService,
-            ILogger<FireBlockJob> logger)
+            ILogger<CircleJob> logger
+            )
         {
             _dwhDbContextFactory = dwhDbContextFactory;
             _circleBusinessAccountService = circleBusinessAccountService;
