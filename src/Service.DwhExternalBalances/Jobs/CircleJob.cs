@@ -32,7 +32,7 @@ namespace Service.DwhExternalBalances.Jobs
             _circleBusinessAccountService = circleBusinessAccountService;
             _logger = logger;
 
-            _timer = new MyTaskTimer(nameof(FireBlockJob),
+            _timer = new MyTaskTimer(nameof(CircleJob),
                 TimeSpan.FromSeconds(180), _logger, DoTime);
         }
 
