@@ -3,18 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using DotNetCoreDecorators;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Domain.ExternalMarketApi;
 using MyJetWallet.Domain.ExternalMarketApi.Dto;
 using MyJetWallet.Sdk.Service.Tools;
-using MyNoSqlServer.Abstractions;
-using Newtonsoft.Json;
 using Service.DwhExternalBalances.DataBase;
-using Service.DwhExternalBalances.DataBase.Models;
 using Service.DwhExternalBalances.Domain.Models;
-
 
 namespace Service.DwhExternalBalances.Jobs
 {
@@ -24,17 +19,19 @@ namespace Service.DwhExternalBalances.Jobs
         private readonly ILogger<ExchangeBalanceJob> _logger;
         private readonly IExternalMarket _externalMarket;
         private readonly IDwhDbContextFactory _dwhDbContextFactory;
-        private readonly List<string> _exchanges = new List<string> {"Binance", "FTX", "OKX" };
+        private readonly IExternalExchangeManager _externalExchangeManager;
 
         public ExchangeBalanceJob(
             ILogger<ExchangeBalanceJob> logger,
             IExternalMarket externalMarket,
-            IDwhDbContextFactory dwhDbContextFactory
+            IDwhDbContextFactory dwhDbContextFactory,
+            IExternalExchangeManager externalExchangeManager
         )
         {
             _logger = logger;
             _externalMarket = externalMarket;
             _dwhDbContextFactory = dwhDbContextFactory;
+            _externalExchangeManager = externalExchangeManager;
 
             _timer = new MyTaskTimer(nameof(ExchangeBalanceJob),
                 TimeSpan.FromSeconds(60), _logger, DoTime);
@@ -50,14 +47,16 @@ namespace Service.DwhExternalBalances.Jobs
             try
             {
                 var allBalances = new List<ExternalBalance>();
-                ICollection<ExternalBalance> savedBalances = new List<ExternalBalance>();
+                ICollection<ExternalBalance> savedBalances;
                 
                 await using (var ctx = _dwhDbContextFactory.Create())
                 {
                     savedBalances = await ctx.GetBalancesAsync();
                 }
 
-                foreach (var exchangeName in _exchanges)
+                var externalMarkets = await _externalExchangeManager.GetExternalExchangeCollectionAsync();
+
+                foreach (var exchangeName in externalMarkets.ExchangeNames ?? new List<string>())
                 {
                     try
                     {
